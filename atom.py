@@ -5,14 +5,6 @@ import numpy as np
 class Atom(object):
     def __init__(self, atom_id: int, mass: float, elem_type: str, x: float,
                  y: float, z: float):
-        """
-        :param atom_id:
-        :param mass:
-        :param elem_type:
-        :param x:
-        :param y:
-        :param z:
-        """
         self.__atom_id = atom_id
         self.__mass = mass
         self.__elem_type = elem_type
@@ -57,13 +49,13 @@ class Atom(object):
     @relative_position.setter
     def relative_position(self, position: np.ndarray):
         if position.shape != (3,):
-            raise ValueError(f"input position size is not (3,) but {position.shape}")
+            raise ValueError(f'input position size is not (3,) but {position.shape}')
         self.__relative_position = position
 
     @cartesian_position.setter
     def cartesian_position(self, position: np.ndarray):
         if position.shape != (3,):
-            raise ValueError(f"input position size is not (3,) but {position.shape}")
+            raise ValueError(f'input position size is not (3,) but {position.shape}')
         self.__cartesian_position = position
 
     @atom_id.setter

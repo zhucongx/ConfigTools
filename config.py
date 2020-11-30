@@ -2,6 +2,7 @@ from constants import *
 from atom import *
 from atomic_mass import get_atomic_mass
 import numpy as np
+from collections import OrderedDict
 import typing
 import logging
 
@@ -16,7 +17,7 @@ class Config(object):
             if isinstance(basis, list):
                 basis = np.array(basis, dtype=np.float64)
             if basis.shape != (3, 3):
-                raise ValueError(f"input basis size is not (3, 3) but {basis.shape}")
+                raise ValueError(f'input basis size is not (3, 3) but {basis.shape}')
             self.__basis: np.ndarray = basis
 
         if atom_list is None:
@@ -24,7 +25,7 @@ class Config(object):
         else:
             self.__atom_list: typing.List[Atom] = atom_list
 
-        self.__logger = logging.getLogger("config_tools.Config")
+        self.__logger = logging.getLogger('config_tools.Config')
 
     @property
     def number_atoms(self) -> int:
@@ -58,6 +59,15 @@ class Config(object):
     def clear_neighbors(self):
         for atom in self.__atom_list:
             atom.clean_neighbors_lists()
+
+    def get_element_list_map(self) -> typing.OrderedDict[str, typing.List[int]]:
+        element_list_map: typing.OrderedDict[str, typing.List[int]] = OrderedDict()
+        for atom in self.__atom_list:
+            try:
+                element_list_map[atom.elem_type].append(atom.atom_id)
+            except KeyError:
+                element_list_map[atom.elem_type] = [atom.atom_id]
+        return element_list_map
 
     def update_neighbors(self, first_r_cutoff: float = FIRST_NEAREST_NEIGHBORS_CUTOFF,
                          second_r_cutoff: float = SECOND_NEAREST_NEIGHBORS_CUTOFF,
@@ -144,11 +154,31 @@ def read_config(filename: str, update_neighbors: bool = True) -> Config:
 
     config = Config(basis, atom_list)
     config.convert_relative_to_cartesian()
-    logging.info(f"Found neighbors {neighbor_found}")
+    logging.info(f'Found neighbors {neighbor_found}')
     if (not neighbor_found) and update_neighbors:
         config.update_neighbors()
 
     return config
+
+
+def write_config(config: Config, filename: str, neighbors_info: bool = True):
+    content = 'Number of particles = ' + str(config.number_atoms) + '\nA = 1.0 Angstrom (basic length-scale) \n'
+    content += f'H0(1,1) = {config.basis[0, 0]} A\nH0(1,2) = {config.basis[0, 1]} A\nH0(1,3) = {config.basis[0, 2]} A\n'
+    content += f'H0(2,1) = {config.basis[1, 0]} A\nH0(2,2) = {config.basis[1, 1]} A\nH0(2,3) = {config.basis[1, 2]} A\n'
+    content += f'H0(3,1) = {config.basis[2, 0]} A\nH0(3,2) = {config.basis[2, 1]} A\nH0(3,3) = {config.basis[2, 2]} A\n'
+    content += '.NO_VELOCITY.\nentry_count = 3\n'
+    for atom in config.atom_list:
+        content += str(atom.mass) + '\n' + atom.elem_type + '\n'
+        content += np.array2string(atom.relative_position, formatter={'float_kind': lambda x: "%.16f" % x})[1:-1]
+        if neighbors_info:
+            content += " # "
+            content += ''.join(
+                str(index) + ' ' for index in
+                atom.first_nearest_neighbor_list + atom.second_nearest_neighbor_list + atom.third_nearest_neighbor_list)
+        content += '\n'
+
+    with open(filename, 'w') as f:
+        f.write(content)
 
 
 def read_poscar(filename: str, update_neighbors: bool = True) -> Config:
@@ -192,3 +222,30 @@ def read_poscar(filename: str, update_neighbors: bool = True) -> Config:
     if update_neighbors:
         config.update_neighbors()
     return config
+
+
+def write_poscar(config: Config, filename: str):
+    content = '#comment\n1.0\n'
+    for basis_row in config.basis:
+        for base in basis_row:
+            content += f'{base} '
+        content += '\n'
+    element_list_map = config.get_element_list_map()
+
+    element_str = ''
+    count_str = ''
+    for element, element_list in element_list_map.items():
+        if element == 'X':
+            continue
+        element_str += element + ' '
+        count_str += str(len(element_list)) + ' '
+    content += element_str + '\n' + count_str + '\n'
+    content += 'Direct\n'
+    for element, element_list in element_list_map.items():
+        if element == 'X':
+            continue
+        for index in element_list:
+            content += np.array2string(config.atom_list[int(index)].relative_position,
+                                       formatter={'float_kind': lambda x: "%.16f" % x})[1:-1] + '\n'
+    with open(filename, 'w') as f:
+        f.write(content)
