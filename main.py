@@ -8,6 +8,8 @@ def print_hi(name):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    config = read_config("start.cfg")
-
+    # config = read_poscar("POSCAR")
+    # write_poscar(config, "T")
+    config = read_config("T")
+    write_config(config, "T2")
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
