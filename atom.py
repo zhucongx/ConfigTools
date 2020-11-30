@@ -1,4 +1,5 @@
-from .utilities import *
+import typing
+import numpy as np
 
 
 class Atom(object):
@@ -17,9 +18,9 @@ class Atom(object):
         self.__elem_type = elem_type
         self.__relative_position = np.array([x, y, z])
         self.__cartesian_position = np.array([x, y, z])
-        self.__first_nearest_neighbor_list = typing.List[int]()
-        self.__second_nearest_neighbor_list = typing.List[int]()
-        self.__third_nearest_neighbor_list = typing.List[int]()
+        self.__first_nearest_neighbor_list: typing.List[int] = list()
+        self.__second_nearest_neighbor_list: typing.List[int] = list()
+        self.__third_nearest_neighbor_list: typing.List[int] = list()
 
     @property
     def cartesian_position(self) -> np.ndarray:
@@ -63,7 +64,7 @@ class Atom(object):
     def cartesian_position(self, position: np.ndarray):
         if position.shape != (3,):
             raise ValueError(f"input position size is not (3,) but {position.shape}")
-        self.__cartesian_position: position
+        self.__cartesian_position = position
 
     @atom_id.setter
     def atom_id(self, atom_id: int):
