@@ -1,3 +1,5 @@
+import typing
+
 atom_symbol_index = {
     1: "H",
     2: "He",
@@ -3571,4 +3573,29 @@ atomic_mass_dict = {
 }
 
 
+def get_atomic_mass(term: typing.Union[int, str]) -> float:
+    """
+    Returns the average standard atomic weight for an element or
+    the relative atomic mass for an isotope.
+    Elements can be specified using atomic numbers or symbols.
+    Isotopes are specified using symbols followed by -#, where # is the mass
+    number (eg. 'He-3') Deuterium and tritium can alternatively be specified
+    using D and T respectively.
+    Values obtained from NIST reference database:
+    http://www.nist.gov/pml/data/comp.cfm
+    """
+    if isinstance(term, (int, float)):
+        term = atom_symbol_index[int(term)]
+    elif type(term) is str:
+        pass
+    else:
+        raise KeyError('Unknown input type ' + str(term))
 
+    try:
+        return atomic_mass_dict[term]
+    except KeyError:
+        if term in atom_symbol_index.values():
+            raise ValueError('No standard weight for element ' + str(
+                term) + '. Specify an isotope instead.')
+        else:
+            raise KeyError('Unknown element/isotope symbol: ' + str(term))
