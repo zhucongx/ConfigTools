@@ -156,6 +156,7 @@ def read_config(filename: str, update_neighbors: bool = True) -> Config:
     config.convert_relative_to_cartesian()
     logging.info(f'Found neighbors {neighbor_found}')
     if (not neighbor_found) and update_neighbors:
+        logging.info(f'Finding neighbors')
         config.update_neighbors()
 
     return config
@@ -163,9 +164,9 @@ def read_config(filename: str, update_neighbors: bool = True) -> Config:
 
 def write_config(config: Config, filename: str, neighbors_info: bool = True):
     content = 'Number of particles = ' + str(config.number_atoms) + '\nA = 1.0 Angstrom (basic length-scale) \n'
-    content += f'H0(1,1) = {config.basis[0, 0]} A\nH0(1,2) = {config.basis[0, 1]} A\nH0(1,3) = {config.basis[0, 2]} A\n'
-    content += f'H0(2,1) = {config.basis[1, 0]} A\nH0(2,2) = {config.basis[1, 1]} A\nH0(2,3) = {config.basis[1, 2]} A\n'
-    content += f'H0(3,1) = {config.basis[2, 0]} A\nH0(3,2) = {config.basis[2, 1]} A\nH0(3,3) = {config.basis[2, 2]} A\n'
+    content += f'H0(1,1) = {config.basis[0][0]} A\nH0(1,2) = {config.basis[0][1]} A\nH0(1,3) = {config.basis[0][2]} A\n'
+    content += f'H0(2,1) = {config.basis[1][0]} A\nH0(2,2) = {config.basis[1][1]} A\nH0(2,3) = {config.basis[1][2]} A\n'
+    content += f'H0(3,1) = {config.basis[2][0]} A\nH0(3,2) = {config.basis[2][1]} A\nH0(3,3) = {config.basis[2][2]} A\n'
     content += '.NO_VELOCITY.\nentry_count = 3\n'
     for atom in config.atom_list:
         content += str(atom.mass) + '\n' + atom.elem_type + '\n'
