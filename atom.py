@@ -93,10 +93,10 @@ def get_relative_distance_vector(atom1: Atom, atom2: Atom) -> np.ndarray:
     -------
     np.ndarray
     """
-    relative_distance_vector = atom1.relative_position - atom2.relative_position
+    relative_distance_vector = atom2.relative_position - atom1.relative_position
     for i in range(3):
-        if relative_distance_vector[i] >= 0.5:
+        while relative_distance_vector[i] >= 0.5:
             relative_distance_vector[i] -= 1
-        elif relative_distance_vector[i] < -0.5:
+        while relative_distance_vector[i] < -0.5:
             relative_distance_vector[i] += 1
     return relative_distance_vector
