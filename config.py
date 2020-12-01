@@ -221,6 +221,7 @@ def read_poscar(filename: str, update_neighbors: bool = True) -> Config:
         config.convert_cartesian_to_relative()
 
     if update_neighbors:
+        logging.info(f'Finding neighbors')
         config.update_neighbors()
     return config
 
