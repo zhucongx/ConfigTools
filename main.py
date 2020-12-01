@@ -12,4 +12,4 @@ if __name__ == '__main__':
     # write_poscar(config, "T")
     config = read_config("T")
     write_config(config, "T2")
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
