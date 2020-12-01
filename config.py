@@ -6,7 +6,7 @@ from collections import OrderedDict
 import typing
 import logging
 
-logging.basicConfig(level=logging.INFO, format='%(levelname)s:: %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(levelname)s:: %(message)s')
 
 
 class Config(object):
