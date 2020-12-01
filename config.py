@@ -251,3 +251,44 @@ def write_poscar(config: Config, filename: str):
                                        formatter={'float_kind': lambda x: "%.16f" % x})[1:-1] + '\n'
     with open(filename, 'w') as f:
         f.write(content)
+
+
+def get_pair_center(config: Config, jump_pair: typing.Tuple[int, int]) -> np.ndarray:
+    first, second = jump_pair
+    center_position = np.zeros(3)
+    for kDim in range(3):
+        first_relative: float = config.atom_list[first].relative_position[kDim]
+        second_relative: float = config.atom_list[second].relative_position[kDim]
+        distance: float = first_relative - second_relative
+        period: int = int(distance / 0.5)
+        # make sure distance is in the range (0, 0.5)
+        while period != 0:
+            first_relative -= float(period)
+            distance = first_relative - second_relative
+            period = int(distance / 0.5)
+        center_position[kDim] = 0.5 * (first_relative + second_relative)
+    return center_position
+
+
+def get_pair_rotation_matrix(config: Config, jump_pair: typing.Tuple[int, int]) -> np.ndarray:
+    first, second = jump_pair
+    first_atom: Atom = config.atom_list[first]
+
+    pair_direction = get_relative_distance_vector(first_atom, config.atom_list[second])
+    logging.debug(f"{pair_direction}")
+    pair_direction /= np.linalg.norm(pair_direction)
+    vertical_vector = np.zeros(3)
+    for index in first_atom.first_nearest_neighbor_list:
+        jump_vector = get_relative_distance_vector(first_atom, config.atom_list[index])
+        # to exam if jump_vector and pair_direction perpendicular
+        dot_prod = np.dot(jump_vector, pair_direction)
+        if abs(dot_prod) < 1e-6:
+            logging.debug(f'dot_prod value is {dot_prod}')
+            absolute_jump_vector = jump_vector.dot(config.basis)
+            vertical_vector = jump_vector
+            vertical_vector /= np.linalg.norm(vertical_vector)
+            break
+    # The third row is normalized since it is a cross product of two normalized vectors.
+    # We use transposed matrix here because transpose of an orthogonal matrix equals its inverse
+    return np.array((pair_direction, vertical_vector, np.cross(pair_direction, vertical_vector))).transpose()
+
