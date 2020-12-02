@@ -12,3 +12,7 @@ class Cluster(object):
                 self.__atom_list.append(insert_atom)
 
         self.__atom_list.sort(key=lambda sort_atom: sort_atom.atom_id)
+
+    @property
+    def atom_list(self) -> typing.List[Atom]:
+        return self.__atom_list
