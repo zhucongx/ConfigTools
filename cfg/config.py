@@ -282,7 +282,6 @@ def get_pair_rotation_matrix(config: Config, jump_pair: typing.Tuple[int, int]) 
         dot_prod = np.dot(jump_vector, pair_direction)
         if abs(dot_prod) < 1e-6:
             logging.debug(f'dot_prod value is {dot_prod}')
-            absolute_jump_vector = jump_vector.dot(config.basis)
             vertical_vector = jump_vector
             vertical_vector /= np.linalg.norm(vertical_vector)
             break
