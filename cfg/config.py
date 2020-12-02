@@ -59,13 +59,13 @@ class Config(object):
             atom.clean_neighbors_lists()
 
     def get_element_list_map(self) -> typing.OrderedDict[str, typing.List[int]]:
-        element_list_map: typing.OrderedDict[str, typing.List[int]] = OrderedDict()
+        element_list_map: typing.Dict[str, typing.List[int]] = dict()
         for atom in self.__atom_list:
             try:
                 element_list_map[atom.elem_type].append(atom.atom_id)
             except KeyError:
                 element_list_map[atom.elem_type] = [atom.atom_id]
-        return element_list_map
+        return OrderedDict(sorted(element_list_map.items(), key=lambda it: it[0]))
 
     def update_neighbors(self, first_r_cutoff: float = FIRST_NEAREST_NEIGHBORS_CUTOFF,
                          second_r_cutoff: float = SECOND_NEAREST_NEIGHBORS_CUTOFF,
