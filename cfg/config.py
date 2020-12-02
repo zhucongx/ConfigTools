@@ -289,3 +289,13 @@ def get_pair_rotation_matrix(config: Config, jump_pair: typing.Tuple[int, int]) 
     # We use transposed matrix here because transpose of an orthogonal matrix equals its inverse
     return np.array((pair_direction, vertical_vector, np.cross(pair_direction, vertical_vector))).transpose()
 
+
+def get_first_and_second_third_neighbors_set_of_jump_pair(
+        config: Config, jump_pair: typing.Tuple[int, int]) -> typing.Set[int]:
+    near_neighbors_hashset: typing.Set[int] = set()
+    for i in jump_pair:
+        atom = config.atom_list[i]
+        for j in atom.first_nearest_neighbor_list \
+                 + atom.second_nearest_neighbor_list + atom.third_nearest_neighbor_list:
+            near_neighbors_hashset.add(j)
+    return near_neighbors_hashset
