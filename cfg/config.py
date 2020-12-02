@@ -1,10 +1,10 @@
-from constants import *
-from atom import *
-from atomic_mass import get_atomic_mass
-import numpy as np
+from cfg.constants import *
+from cfg.atom import Atom, get_relative_distance_vector
+from cfg.atomic_mass import get_atomic_mass
 from collections import OrderedDict
 import typing
 import logging
+import numpy as np
 
 logging.basicConfig(level=logging.DEBUG, format='%(levelname)s:: %(message)s')
 
@@ -24,8 +24,6 @@ class Config(object):
             self.__atom_list: typing.List[Atom] = list()
         else:
             self.__atom_list: typing.List[Atom] = atom_list
-
-        self.__logger = logging.getLogger('config_tools.Config')
 
     @property
     def number_atoms(self) -> int:
