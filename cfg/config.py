@@ -43,16 +43,16 @@ class Config(object):
             basis = np.array(basis, dtype=np.float64)
         self._basis = basis
 
-    def convert_relative_to_cartesian(self):
+    def convert_relative_to_cartesian(self) -> None:
         for i, atom in enumerate(self._atom_list):
             self._atom_list[i].cartesian_position = atom.relative_position.dot(self._basis)
 
-    def convert_cartesian_to_relative(self):
+    def convert_cartesian_to_relative(self) -> None:
         inverse_basis = np.linalg.inv(self._basis)
         for i, atom in enumerate(self._atom_list):
             self._atom_list[i].relative_position = atom.cartesian_position.dot(inverse_basis)
 
-    def clear_neighbors(self):
+    def clear_neighbors(self) -> None:
         for atom in self._atom_list:
             atom.clean_neighbors_lists()
 
@@ -67,7 +67,7 @@ class Config(object):
 
     def update_neighbors(self, first_r_cutoff: float = FIRST_NEAREST_NEIGHBORS_CUTOFF,
                          second_r_cutoff: float = SECOND_NEAREST_NEIGHBORS_CUTOFF,
-                         third_r_cutoff: float = THIRD_NEAREST_NEIGHBORS_CUTOFF):
+                         third_r_cutoff: float = THIRD_NEAREST_NEIGHBORS_CUTOFF) -> None:
         first_r_cutoff_square = first_r_cutoff * first_r_cutoff
         second_r_cutoff_square = second_r_cutoff * second_r_cutoff
         third_r_cutoff_square = third_r_cutoff * third_r_cutoff
@@ -158,7 +158,7 @@ def read_config(filename: str, update_neighbors: bool = True) -> Config:
     return config
 
 
-def write_config(config: Config, filename: str, neighbors_info: bool = True):
+def write_config(config: Config, filename: str, neighbors_info: bool = True) -> None:
     content = 'Number of particles = ' + str(config.number_atoms) + '\nA = 1.0 Angstrom (basic length-scale)\n'
     content += f'H0(1,1) = {config.basis[0][0]} A\nH0(1,2) = {config.basis[0][1]} A\nH0(1,3) = {config.basis[0][2]} A\n'
     content += f'H0(2,1) = {config.basis[1][0]} A\nH0(2,2) = {config.basis[1][1]} A\nH0(2,3) = {config.basis[1][2]} A\n'
@@ -222,7 +222,7 @@ def read_poscar(filename: str, update_neighbors: bool = True) -> Config:
     return config
 
 
-def write_poscar(config: Config, filename: str):
+def write_poscar(config: Config, filename: str) -> None:
     content = '#comment\n1.0\n'
     for basis_row in config.basis:
         for base in basis_row:
@@ -299,7 +299,7 @@ def get_first_and_second_third_neighbors_set_of_jump_pair(
     return near_neighbors_hashset
 
 
-def rotate_atom_vector(atom_list: typing.List[Atom], rotation_matrix: np.ndarray):
+def rotate_atom_vector(atom_list: typing.List[Atom], rotation_matrix: np.ndarray) -> None:
     move_distance_after_rotation = np.full((3,), 0.5) - np.full((3,), 0.5).dot(rotation_matrix)
 
     for i, atom in enumerate(atom_list):
