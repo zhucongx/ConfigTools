@@ -12,55 +12,53 @@ logging.basicConfig(level=logging.DEBUG, format='%(levelname)s:: %(message)s')
 class Config(object):
     def __init__(self, basis: typing.Union[list, np.ndarray] = None, atom_list: typing.List[Atom] = None):
         if basis is None:
-            self.__basis = np.array([0, 0, 0], [0, 0, 0], [0, 0, 0])
+            self._basis = np.array([0, 0, 0], [0, 0, 0], [0, 0, 0])
         else:
             if isinstance(basis, list):
                 basis = np.array(basis, dtype=np.float64)
             if basis.shape != (3, 3):
                 raise ValueError(f'input basis size is not (3, 3) but {basis.shape}')
-            self.__basis: np.ndarray = basis
+            self._basis: np.ndarray = basis
 
         if atom_list is None:
-            self.__atom_list: typing.List[Atom] = list()
+            self._atom_list: typing.List[Atom] = list()
         else:
-            self.__atom_list: typing.List[Atom] = atom_list
+            self._atom_list: typing.List[Atom] = atom_list
 
     @property
     def number_atoms(self) -> int:
-        return len(self.__atom_list)
+        return len(self._atom_list)
 
     @property
     def basis(self) -> np.ndarray:
-        return self.__basis
+        return self._basis
 
     @property
     def atom_list(self) -> typing.List[Atom]:
-        return self.__atom_list
+        return self._atom_list
 
     @basis.setter
     def basis(self, basis: typing.Union[list, np.ndarray]):
         if isinstance(basis, list):
             basis = np.array(basis, dtype=np.float64)
-        self.__basis = basis
+        self._basis = basis
 
     def convert_relative_to_cartesian(self):
-        for i, atom in enumerate(self.__atom_list):
-            atom.cartesian_position = atom.relative_position.dot(self.__basis)
-            self.__atom_list[i] = atom
+        for i, atom in enumerate(self._atom_list):
+            self._atom_list[i].cartesian_position = atom.relative_position.dot(self._basis)
 
     def convert_cartesian_to_relative(self):
-        inverse_basis = np.linalg.inv(self.__basis)
-        for i, atom in enumerate(self.__atom_list):
-            atom.relative_position = atom.cartesian_position.dot(inverse_basis)
-            self.__atom_list[i] = atom
+        inverse_basis = np.linalg.inv(self._basis)
+        for i, atom in enumerate(self._atom_list):
+            self._atom_list[i].relative_position = atom.cartesian_position.dot(inverse_basis)
 
     def clear_neighbors(self):
-        for atom in self.__atom_list:
+        for atom in self._atom_list:
             atom.clean_neighbors_lists()
 
     def get_element_list_map(self) -> typing.OrderedDict[str, typing.List[int]]:
         element_list_map: typing.Dict[str, typing.List[int]] = dict()
-        for atom in self.__atom_list:
+        for atom in self._atom_list:
             try:
                 element_list_map[atom.elem_type].append(atom.atom_id)
             except KeyError:
@@ -76,9 +74,9 @@ class Config(object):
 
         for i in range(self.number_atoms):
             for j in range(i):
-                relative_distance_vector = get_relative_distance_vector(self.__atom_list[i],
-                                                                        self.__atom_list[j])
-                absolute_distance_vector = relative_distance_vector.dot(self.__basis)
+                relative_distance_vector = get_relative_distance_vector(self._atom_list[i],
+                                                                        self._atom_list[j])
+                absolute_distance_vector = relative_distance_vector.dot(self._basis)
 
                 if abs(absolute_distance_vector[0]) > third_r_cutoff:
                     continue
@@ -90,14 +88,14 @@ class Config(object):
                 if absolute_distance_square <= third_r_cutoff_square:
                     if absolute_distance_square <= second_r_cutoff_square:
                         if absolute_distance_square <= first_r_cutoff_square:
-                            self.__atom_list[i].append_first_nearest_neighbor_list(j)
-                            self.__atom_list[j].append_first_nearest_neighbor_list(i)
+                            self._atom_list[i].append_first_nearest_neighbor_list(j)
+                            self._atom_list[j].append_first_nearest_neighbor_list(i)
                         else:
-                            self.__atom_list[i].append_second_nearest_neighbor_list(j)
-                            self.__atom_list[j].append_second_nearest_neighbor_list(i)
+                            self._atom_list[i].append_second_nearest_neighbor_list(j)
+                            self._atom_list[j].append_second_nearest_neighbor_list(i)
                     else:
-                        self.__atom_list[i].append_third_nearest_neighbor_list(j)
-                        self.__atom_list[j].append_third_nearest_neighbor_list(i)
+                        self._atom_list[i].append_third_nearest_neighbor_list(j)
+                        self._atom_list[j].append_third_nearest_neighbor_list(i)
 
 
 def read_config(filename: str, update_neighbors: bool = True) -> Config:
@@ -161,7 +159,7 @@ def read_config(filename: str, update_neighbors: bool = True) -> Config:
 
 
 def write_config(config: Config, filename: str, neighbors_info: bool = True):
-    content = 'Number of particles = ' + str(config.number_atoms) + '\nA = 1.0 Angstrom (basic length-scale) \n'
+    content = 'Number of particles = ' + str(config.number_atoms) + '\nA = 1.0 Angstrom (basic length-scale)\n'
     content += f'H0(1,1) = {config.basis[0][0]} A\nH0(1,2) = {config.basis[0][1]} A\nH0(1,3) = {config.basis[0][2]} A\n'
     content += f'H0(2,1) = {config.basis[1][0]} A\nH0(2,2) = {config.basis[1][1]} A\nH0(2,3) = {config.basis[1][2]} A\n'
     content += f'H0(3,1) = {config.basis[2][0]} A\nH0(3,2) = {config.basis[2][1]} A\nH0(3,3) = {config.basis[2][2]} A\n'
@@ -299,3 +297,15 @@ def get_first_and_second_third_neighbors_set_of_jump_pair(
                  + atom.second_nearest_neighbor_list + atom.third_nearest_neighbor_list:
             near_neighbors_hashset.add(j)
     return near_neighbors_hashset
+
+
+def rotate_atom_vector(atom_list: typing.List[Atom], rotation_matrix: np.ndarray):
+    move_distance_after_rotation = np.full((3,), 0.5) - np.full((3,), 0.5).dot(rotation_matrix)
+
+    for i, atom in enumerate(atom_list):
+        relative_position = atom.relative_position
+        relative_position = relative_position.dot(rotation_matrix)
+        relative_position += move_distance_after_rotation
+        relative_position -= np.floor(relative_position)
+
+        atom_list[i].relative_position = relative_position
