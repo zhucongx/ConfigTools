@@ -79,16 +79,16 @@ class Atom(object):
     def elem_type(self, elem_type: str):
         self._elem_type = elem_type
 
-    def append_first_nearest_neighbor_list(self, index: int):
+    def append_first_nearest_neighbor_list(self, index: int) -> None:
         self._first_nearest_neighbor_list.append(index)
 
-    def append_second_nearest_neighbor_list(self, index: int):
+    def append_second_nearest_neighbor_list(self, index: int) -> None:
         self._second_nearest_neighbor_list.append(index)
 
-    def append_third_nearest_neighbor_list(self, index: int):
+    def append_third_nearest_neighbor_list(self, index: int) -> None:
         self._third_nearest_neighbor_list.append(index)
 
-    def clean_neighbors_lists(self):
+    def clean_neighbors_lists(self) -> None:
         self._first_nearest_neighbor_list.clear()
         self._second_nearest_neighbor_list.clear()
         self._third_nearest_neighbor_list.clear()
