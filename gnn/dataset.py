@@ -9,29 +9,46 @@ from torch_geometric.data import Data, InMemoryDataset
 from torch_geometric.utils import to_networkx
 from tqdm import tqdm
 
+atom_encoding_dict = {'Al': [0, 0, 1], 'Mg': [0, 1, 0], 'Zn': [1, 0, 0]}
+type_encoding_dict = {('Al', 'Al'): [0, 0, 0, 0, 0, 1],
+                      ('Mg', 'Mg'): [0, 0, 0, 0, 1, 0],
+                      ('Zn', 'Zn'): [0, 0, 0, 1, 0, 0],
+                      ('Al', 'Mg'): [0, 0, 1, 0, 0, 0],
+                      ('Zn', 'Mg'): [0, 1, 0, 0, 0, 0],
+                      ('Al', 'Zn'): [1, 0, 0, 0, 0, 0],
+                      ('Mg', 'Al'): [0, 0, 1, 0, 0, 0],
+                      ('Mg', 'Zn'): [0, 1, 0, 0, 0, 0],
+                      ('Zn', 'Al'): [1, 0, 0, 0, 0, 0]}
 
-def build_data_from_config(config: Config, jump_pair: typing.Tuple[int, int], barrier: float) -> Data:
-    atom_vector = get_symmetrically_sorted_atom_vectors(config, jump_pair)[0]
-    edge_index = []
-    x = []
-    for atom in atom_vector:
-        if atom.elem_type == 'X':
-            continue
-        if atom.elem_type == 'Al':
-            x.append([0, 0, 1])
-        elif atom.elem_type == 'Mg':
-            x.append([0, 1, 0])
-        elif atom.elem_type == 'Zn':
-            x.append([1, 0, 0])
-        else:
-            x.append([0, 0, 0])
-        for index in atom.first_nearest_neighbor_list:
-            if atom_vector[index].elem_type == "X":
+
+def build_data_from_config(config: Config,
+                           jump_pair: typing.Tuple[int, int],
+                           barrier: typing.Tuple[float, float]) -> typing.List[Data]:
+    atom_vectors = get_symmetrically_sorted_atom_vectors(config, jump_pair)
+    data_list = []
+    i = 0
+    for atom_vector in atom_vectors:
+        edge_index = []
+        x = []
+        edge_attr = []
+
+        for atom in atom_vector:
+            if atom.elem_type == 'X':
                 continue
-            edge_index.append([atom.atom_id, index])
-    return Data(x=torch.tensor(x, dtype=torch.float),
-                edge_index=torch.tensor(edge_index, dtype=torch.long).t().contiguous(),
-                y=torch.tensor([barrier], dtype=torch.float))
+            x.append(atom_encoding_dict[atom.elem_type])
+
+            for index in atom.first_nearest_neighbor_list:
+                if atom_vector[index].elem_type == "X":
+                    continue
+                edge_index.append([atom.atom_id, index])
+                edge_attr.append(type_encoding_dict[(atom.elem_type, atom_vector[index].elem_type)])
+
+        data_list.append(Data(x=torch.tensor(x, dtype=torch.float),
+                              edge_index=torch.tensor(edge_index, dtype=torch.long).t().contiguous(),
+                              y=torch.tensor([barrier[i]], dtype=torch.float),
+                              edge_attr=torch.tensor(edge_attr, dtype=torch.float)))
+        i += 1
+    return data_list
 
 
 class ConfigDataset(InMemoryDataset):
@@ -58,15 +75,14 @@ class ConfigDataset(InMemoryDataset):
             dir_path = os.path.join(self.raw_dir, 'config' + str(i))
             line_list = lines[i].split()
 
-            config_forward = read_config(os.path.join(dir_path, 'start.cfg'))
-            jump_pair_forward = (int(line_list[0]), int(line_list[1]))
-            barrier_forward = float(line_list[2])
-            data_list.append(build_data_from_config(config_forward, jump_pair_forward, barrier_forward))
+            config = read_config(os.path.join(dir_path, 'start.cfg'))
+            jump_pair = (int(line_list[0]), int(line_list[1]))
+            barriers = (float(line_list[2]), float(line_list[3]))
 
-            config_backward = read_config(os.path.join(dir_path, 'end.cfg'))
-            jump_pair_backward = (int(line_list[0]), int(line_list[1]))
-            barrier_backward = float(line_list[3])
-            data_list.append(build_data_from_config(config_backward, jump_pair_backward, barrier_backward))
+            data_tuple = build_data_from_config(config, jump_pair, barriers)
+            for data in data_tuple:
+                data_list.append(data)
+
             logging.debug(f'Processing config{i}')
         if self.pre_filter is not None:
             data_list = [data for data in data_list if self.pre_filter(data)]
@@ -103,7 +119,7 @@ if __name__ == '__main__':
 
     print()
     print(f'Dataset: {dataset}:')
-    print('===========================')
+    print('=' * 60)
     print(f'Number of graphs: {len(dataset)}')
     print(f'Number of features: {dataset.num_features}')
     print(f'Number of classes: {dataset.num_classes}')
@@ -115,7 +131,6 @@ if __name__ == '__main__':
     print()
     print(dat)
     print('=' * 60)
-
     # Gather some statistics about the first graph.
     print(f'Number of nodes: {dat.num_nodes}')
     print(f'Number of edges: {dat.num_edges}')
@@ -123,3 +138,4 @@ if __name__ == '__main__':
     print(f'Contains isolated nodes: {dat.contains_isolated_nodes()}')
     print(f'Contains self-loops: {dat.contains_self_loops()}')
     print(f'Is directed: {dat.is_directed()}')
+
