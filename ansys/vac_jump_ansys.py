@@ -1,4 +1,5 @@
 from cfg.config import *
+from collections import OrderedDict
 import bisect
 import copy
 
@@ -31,13 +32,12 @@ class Cluster(object):
     def atom_list(self) -> typing.List[Atom]:
         return self._atom_list
 
-    # @property
-    # def type_key(self): ->str:
-    #     pass
-
-
-def get_cluster_types_dict(*types: str) -> typing.Dict[str,]:
-    pass
+    @property
+    def type_key(self) -> str:
+        key = ''
+        for atom in self._atom_list:
+            key += atom.elem_type
+        return key
 
 
 K_EPSILON = 1e-8
@@ -147,7 +147,7 @@ def _rotate_atom_vector_and_sort_helper(atom_list: typing.List[Atom], reference_
     return config.atom_list
 
 
-def _get_symmetrically_sorted_atom_vectors(config: Config, jump_pair: typing.Tuple[int, int]) -> \
+def get_symmetrically_sorted_atom_vectors(config: Config, jump_pair: typing.Tuple[int, int]) -> \
         typing.Tuple[typing.List[Atom], typing.List[Atom]]:
     """
     Returns forward and backward sorted atom lists
@@ -231,7 +231,7 @@ def get_average_cluster_parameters_mapping(config: Config) -> typing.List[typing
     vacancy_index = get_vacancy_index(config)
     neighbor_index = config.atom_list[vacancy_index].first_nearest_neighbor_list[0]
 
-    atom_vector = _get_symmetrically_sorted_atom_vectors(config, (vacancy_index, neighbor_index))[0]
+    atom_vector = get_symmetrically_sorted_atom_vectors(config, (vacancy_index, neighbor_index))[0]
 
     cluster_mapping: typing.List[typing.List[typing.List[int]]] = list()
     # singlets

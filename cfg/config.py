@@ -6,7 +6,6 @@ import typing
 import logging
 import numpy as np
 
-logging.basicConfig(level=logging.DEBUG, format='%(levelname)s:: %(message)s')
 
 
 class Config(object):
@@ -150,9 +149,9 @@ def read_config(filename: str, update_neighbors: bool = True) -> Config:
 
     config = Config(basis, atom_list)
     config.convert_relative_to_cartesian()
-    logging.info(f'Found neighbors {neighbor_found}')
+    logging.debug(f'Found neighbors {neighbor_found}')
     if (not neighbor_found) and update_neighbors:
-        logging.info(f'Finding neighbors')
+        logging.debug(f'Finding neighbors')
         config.update_neighbors()
 
     return config
@@ -217,7 +216,7 @@ def read_poscar(filename: str, update_neighbors: bool = True) -> Config:
         config.convert_cartesian_to_relative()
 
     if update_neighbors:
-        logging.info(f'Finding neighbors')
+        logging.debug(f'Finding neighbors')
         config.update_neighbors()
     return config
 
