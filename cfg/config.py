@@ -16,7 +16,7 @@ class Config(object):
             if isinstance(basis, list):
                 basis = np.array(basis, dtype=np.float64)
             if basis.shape != (3, 3):
-                raise ValueError(f'input basis size is not (3, 3) but {basis.shape}')
+                raise RuntimeError(f'input basis size is not (3, 3) but {basis.shape}')
             self._basis: np.ndarray = basis
 
         if atom_list is None:

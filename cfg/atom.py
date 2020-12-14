@@ -62,13 +62,13 @@ class Atom(object):
     @relative_position.setter
     def relative_position(self, position: np.ndarray):
         if position.shape != (3,):
-            raise ValueError(f'input position size is not (3,) but {position.shape}')
+            raise RuntimeError(f'input position size is not (3,) but {position.shape}')
         self._relative_position = position
 
     @cartesian_position.setter
     def cartesian_position(self, position: np.ndarray):
         if position.shape != (3,):
-            raise ValueError(f'input position size is not (3,) but {position.shape}')
+            raise RuntimeError(f'input position size is not (3,) but {position.shape}')
         self._cartesian_position = position
 
     @atom_id.setter
