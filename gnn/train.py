@@ -60,8 +60,8 @@ def test(loader, filename):
         plt.ylim([0, 1.2])
     true_y = np.array(true_y)
     pred_y = np.array(pred_y)
-    np.savetxt("checkpoints" + filename + '.true', true_y, fmt='%10.16f')
-    np.savetxt("checkpoints" + filename + '.pred', pred_y, fmt='%10.16f')
+    np.savetxt("checkpoints/" + filename + '.true', true_y, fmt='%10.16f')
+    np.savetxt("checkpoints/" + filename + '.pred', pred_y, fmt='%10.16f')
 
     plt.title('')
     plt.xlabel('real')
