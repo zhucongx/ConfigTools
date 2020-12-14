@@ -1,4 +1,4 @@
-from ansys.vac_jump_ansys import get_symmetrically_sorted_atom_vectors
+from ansys.vac_jump import get_symmetrically_sorted_atom_vectors
 import torch
 from torch.nn import Linear, Sequential
 import torch.nn.functional as F
@@ -10,7 +10,7 @@ class Net1(torch.nn.Module):
     def __init__(self):
         super(Net1, self).__init__()
         torch.manual_seed(12345)
-        self.conv1 = CGConv(channels=3, dim=6)
+        self.conv1 = CGConv(channels=3, dim=9)
         # self.conv2 = CGConv(channels=3, dim=6)
         self.lin = Linear(177, 1)
 
