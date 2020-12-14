@@ -1,6 +1,7 @@
 # prive
 data/raw
-
+#checkpoints
+gnn/checkpoints
 # IDE
 .vscode/
 .idea/
