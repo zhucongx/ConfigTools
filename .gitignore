@@ -1,7 +1,9 @@
 # prive
 data/raw
-#checkpoints
+# checkpoints
 gnn/checkpoints
+# plots
+**.png
 # IDE
 .vscode/
 .idea/
