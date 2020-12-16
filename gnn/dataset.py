@@ -10,7 +10,7 @@ from torch_geometric.utils import to_networkx
 from tqdm import tqdm
 
 atom_encoding_dict = {'Al': [0, 0, 1], 'Mg': [0, 1, 0], 'Zn': [1, 0, 0]}
-type_encoding_dict = {('Al', 'Al'): [0, 0, 0, 0, 0, 0, 0, 0, 1],
+bond_encoding_dict = {('Al', 'Al'): [0, 0, 0, 0, 0, 0, 0, 0, 1],
                       ('Mg', 'Mg'): [0, 0, 0, 0, 0, 0, 0, 1, 0],
                       ('Zn', 'Zn'): [0, 0, 0, 0, 0, 0, 1, 0, 0],
                       ('Al', 'Mg'): [0, 0, 0, 0, 0, 1, 0, 0, 0],
@@ -41,7 +41,7 @@ def build_data_from_config(config: Config,
                 if atom_vector[index].elem_type == "X":
                     continue
                 edge_index.append([atom.atom_id, index])
-                edge_attr.append(type_encoding_dict[(atom.elem_type, atom_vector[index].elem_type)])
+                edge_attr.append(bond_encoding_dict[(atom.elem_type, atom_vector[index].elem_type)])
 
         data_list.append(Data(x=torch.tensor(x, dtype=torch.float),
                               edge_index=torch.tensor(edge_index, dtype=torch.long).t().contiguous(),
