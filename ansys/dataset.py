@@ -33,17 +33,18 @@ def build_pd_file(type_category_map, path='../data'):
         cluster_extension_parameters = get_average_cluster_parameters_forward_and_backward_from_map(config, jump_pair,
                                                                                                     type_category_map,
                                                                                                     cluster_mapping)
-        data[ct] = [migration_atom, barriers[0], barriers[0] - barriers[1], one_hot_encodes[0],
-                    cluster_extension_parameters[0]]
+        data[ct] = [i, migration_atom, barriers[0], barriers[0] - barriers[1], one_hot_encodes[0],
+                    cluster_extension_parameters[0], one_hot_encodes[1], cluster_extension_parameters[1]]
         ct += 1
-        data[ct] = [migration_atom, barriers[1], barriers[1] - barriers[0], one_hot_encodes[1],
-                    cluster_extension_parameters[1]]
+        data[ct] = [i, migration_atom, barriers[1], barriers[1] - barriers[0], one_hot_encodes[1],
+                    cluster_extension_parameters[1], one_hot_encodes[0], cluster_extension_parameters[0]]
         ct += 1
 
     df = pd.DataFrame.from_dict(data, orient='index',
-                                columns=["migration_atom",
+                                columns=['index', 'migration_atom',
                                          'migration_barriers', 'energy_difference',
-                                         'one_hot_encode', "cluster_extension"])
+                                         'one_hot_encode_forward', 'cluster_extension_forward',
+                                         'one_hot_encode_backward', 'cluster_extension_backward'])
     df.to_pickle(os.path.join(path, 'processed', 'linear_regression.pkl'))
 
 
