@@ -1,6 +1,6 @@
 import os
 from cfg.config import *
-from ansys.vac_jump_ansys import get_symmetrically_sorted_atom_vectors
+from ansys.vac_jump import get_symmetrically_sorted_atom_vectors
 import typing
 import torch
 import networkx as nx
@@ -10,15 +10,15 @@ from torch_geometric.utils import to_networkx
 from tqdm import tqdm
 
 atom_encoding_dict = {'Al': [0, 0, 1], 'Mg': [0, 1, 0], 'Zn': [1, 0, 0]}
-type_encoding_dict = {('Al', 'Al'): [0, 0, 0, 0, 0, 1],
-                      ('Mg', 'Mg'): [0, 0, 0, 0, 1, 0],
-                      ('Zn', 'Zn'): [0, 0, 0, 1, 0, 0],
-                      ('Al', 'Mg'): [0, 0, 1, 0, 0, 0],
-                      ('Zn', 'Mg'): [0, 1, 0, 0, 0, 0],
-                      ('Al', 'Zn'): [1, 0, 0, 0, 0, 0],
-                      ('Mg', 'Al'): [0, 0, 1, 0, 0, 0],
-                      ('Mg', 'Zn'): [0, 1, 0, 0, 0, 0],
-                      ('Zn', 'Al'): [1, 0, 0, 0, 0, 0]}
+bond_encoding_dict = {('Al', 'Al'): [0, 0, 0, 0, 0, 0, 0, 0, 1],
+                      ('Mg', 'Mg'): [0, 0, 0, 0, 0, 0, 0, 1, 0],
+                      ('Zn', 'Zn'): [0, 0, 0, 0, 0, 0, 1, 0, 0],
+                      ('Al', 'Mg'): [0, 0, 0, 0, 0, 1, 0, 0, 0],
+                      ('Zn', 'Mg'): [0, 0, 0, 0, 1, 0, 0, 0, 0],
+                      ('Al', 'Zn'): [0, 0, 0, 1, 0, 0, 0, 0, 0],
+                      ('Mg', 'Al'): [0, 0, 1, 0, 0, 0, 0, 0, 0],
+                      ('Mg', 'Zn'): [0, 1, 0, 0, 0, 0, 0, 0, 0],
+                      ('Zn', 'Al'): [1, 0, 0, 0, 0, 0, 0, 0, 0]}
 
 
 def build_data_from_config(config: Config,
@@ -41,7 +41,7 @@ def build_data_from_config(config: Config,
                 if atom_vector[index].elem_type == "X":
                     continue
                 edge_index.append([atom.atom_id, index])
-                edge_attr.append(type_encoding_dict[(atom.elem_type, atom_vector[index].elem_type)])
+                edge_attr.append(bond_encoding_dict[(atom.elem_type, atom_vector[index].elem_type)])
 
         data_list.append(Data(x=torch.tensor(x, dtype=torch.float),
                               edge_index=torch.tensor(edge_index, dtype=torch.long).t().contiguous(),
@@ -138,4 +138,3 @@ if __name__ == '__main__':
     print(f'Contains isolated nodes: {dat.contains_isolated_nodes()}')
     print(f'Contains self-loops: {dat.contains_self_loops()}')
     print(f'Is directed: {dat.is_directed()}')
-

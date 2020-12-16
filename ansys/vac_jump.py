@@ -1,43 +1,10 @@
 from cfg.config import *
+from ansys.cluster import Cluster
 from collections import OrderedDict
 import bisect
 import copy
 
-
 # import logging
-
-
-class Cluster(object):
-    def __init__(self, *atoms: Atom):
-        self._atom_list: typing.List[Atom] = list()
-        for insert_atom in atoms:
-            self._atom_list.append(copy.deepcopy(insert_atom))
-
-        self._atom_list.sort(key=lambda sort_atom: sort_atom.atom_id)
-
-    def __eq__(self, other):
-        for atom1, atom2 in zip(self.atom_list, other.atom_list):
-            if atom1.atom_id != atom2.atom_id:
-                return False
-        return True
-
-    def __hash__(self):
-        the_hash = hash(self._atom_list[0].atom_id)
-        if len(self._atom_list) > 1:
-            for atom in self._atom_list[1:]:
-                the_hash = the_hash ^ hash(atom.atom_id)
-        return the_hash
-
-    @property
-    def atom_list(self) -> typing.List[Atom]:
-        return self._atom_list
-
-    @property
-    def type_key(self) -> str:
-        key = ''
-        for atom in self._atom_list:
-            key += atom.elem_type
-        return key
 
 
 K_EPSILON = 1e-8
@@ -256,13 +223,101 @@ def get_average_cluster_parameters_mapping(config: Config) -> typing.List[typing
 
     _get_average_parameters_mapping_from_cluster_vector_helper(list(second_pair_set), cluster_mapping)
 
-    # first nearest triplets
-    triplets_set: typing.Set[Cluster] = set()
-    for atom1 in atom_vector:
-        for atom2_index in atom1.first_nearest_neighbor_list:
-            atom2 = atom_vector[atom2_index]
-            for atom3_index in atom2.first_nearest_neighbor_list:
-                if atom3_index in atom1.first_nearest_neighbor_list:
-                    triplets_set.add(Cluster(atom1, atom2, atom_vector[atom3_index]))
-    _get_average_parameters_mapping_from_cluster_vector_helper(list(triplets_set), cluster_mapping)
+    # # first nearest triplets
+    # triplets_set: typing.Set[Cluster] = set()
+    # for atom1 in atom_vector:
+    #     for atom2_index in atom1.first_nearest_neighbor_list:
+    #         atom2 = atom_vector[atom2_index]
+    #         for atom3_index in atom2.first_nearest_neighbor_list:
+    #             if atom3_index in atom1.first_nearest_neighbor_list:
+    #                 triplets_set.add(Cluster(atom1, atom2, atom_vector[atom3_index]))
+    # _get_average_parameters_mapping_from_cluster_vector_helper(list(triplets_set), cluster_mapping)
     return cluster_mapping
+
+
+def generate_one_hot_encode_dict_for_type(type_set: typing.Set[str]) -> typing.Dict[str, typing.List[float]]:
+    sorted_type_set = sorted(type_set)
+    num_singlets = len(type_set)
+    encode_dist: typing.Dict[str, typing.List[float]] = dict()
+    counter = 0
+    for element in sorted_type_set:
+        element_encode = [0.] * num_singlets
+        element_encode[counter] = 1.
+        encode_dist[element] = element_encode
+        counter += 1
+
+    num_pairs = len(type_set) ** 2
+    counter = 0
+    for element1 in sorted_type_set:
+        for element2 in sorted_type_set:
+            element_encode = [0.] * num_pairs
+            element_encode[counter] = 1.
+            encode_dist[element1 + element2] = element_encode
+            counter += 1
+    return encode_dist
+
+
+def get_average_cluster_parameters_forward_and_backward_from_map(
+        config: Config, jump_pair: typing.Tuple[int, int],
+        type_category_map: typing.Dict[str, float],
+        cluster_mapping: typing.List[typing.List[typing.List[int]]]) -> \
+        typing.Tuple[typing.List[float], typing.List[float]]:
+    result: typing.List[typing.List[float]] = list()
+    atom_vectors = get_symmetrically_sorted_atom_vectors(config, jump_pair)
+    for atom_vector in atom_vectors:
+        encode_list: typing.List[float] = list()
+        encode_list.append(1.0)
+        for cluster_vector in cluster_mapping:
+            sum_of_functional = 0.0
+            for cluster in cluster_vector:
+                cumulative_product = 1.0
+                for atom_index in cluster:
+                    cumulative_product *= type_category_map[atom_vector[atom_index].elem_type]
+                sum_of_functional += cumulative_product
+            encode_list.append(sum_of_functional / len(cluster_vector))
+        result.append(encode_list)
+    return tuple(result)
+
+
+def _element_wise_add_second_to_first(first_list: typing.List[float], second_list: typing.List[float]):
+    if len(first_list) != len(second_list):
+        raise RuntimeError("Size mismatch")
+    for i in range(len(first_list)):
+        first_list[i] += second_list[i]
+
+
+def _element_wise_divide_float_from_list(float_list: typing.List[float], divisor: float):
+    for i in range(len(float_list)):
+        float_list[i] /= divisor
+
+
+def get_one_hot_encoding_list_forward_and_backward_from_map(
+        config: Config, jump_pair: typing.Tuple[int, int],
+        type_set: typing.Set[str],
+        cluster_mapping: typing.List[typing.List[typing.List[int]]]) -> \
+        typing.Tuple[typing.List[float], typing.List[float]]:
+    one_hot_encode_dict = generate_one_hot_encode_dict_for_type(type_set)
+
+    result: typing.List[typing.List[float]] = list()
+    atom_vectors = get_symmetrically_sorted_atom_vectors(config, jump_pair)
+    for atom_vector in atom_vectors:
+        encode_list: typing.List[float] = list()
+        for cluster_vector in cluster_mapping:
+            sum_of_list = [0.0] * (len(type_set) ** len(cluster_vector[0]))
+            for cluster in cluster_vector:
+                cluster_type_key = ''
+                for atom_index in cluster:
+                    cluster_type_key += atom_vector[atom_index].elem_type
+                _element_wise_add_second_to_first(sum_of_list, one_hot_encode_dict[cluster_type_key])
+            _element_wise_divide_float_from_list(sum_of_list, float(len(cluster_vector)))
+            encode_list = encode_list + sum_of_list
+        result.append(encode_list)
+    return tuple(result)
+
+
+if __name__ == '__main__':
+    config = read_config("../test/test_files/test.cfg")
+    cl_mapping = get_average_cluster_parameters_mapping(config)
+    forward, backward = get_one_hot_encoding_list_forward_and_backward_from_map(
+        config, (18, 23), {'Al', 'Mg', 'Zn'}, cl_mapping)
+    print(len(forward))
