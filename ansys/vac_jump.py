@@ -238,12 +238,12 @@ def get_average_cluster_parameters_mapping(config: Config) -> typing.List[typing
 def generate_one_hot_encode_dict_for_type(type_set: typing.Set[str]) -> typing.Dict[str, typing.List[float]]:
     sorted_type_set = sorted(type_set)
     num_singlets = len(type_set)
-    encode_dist: typing.Dict[str, typing.List[float]] = dict()
+    encode_dict: typing.Dict[str, typing.List[float]] = dict()
     counter = 0
     for element in sorted_type_set:
         element_encode = [0.] * num_singlets
         element_encode[counter] = 1.
-        encode_dist[element] = element_encode
+        encode_dict[element] = element_encode
         counter += 1
 
     num_pairs = len(type_set) ** 2
@@ -252,9 +252,9 @@ def generate_one_hot_encode_dict_for_type(type_set: typing.Set[str]) -> typing.D
         for element2 in sorted_type_set:
             element_encode = [0.] * num_pairs
             element_encode[counter] = 1.
-            encode_dist[element1 + element2] = element_encode
+            encode_dict[element1 + element2] = element_encode
             counter += 1
-    return encode_dist
+    return encode_dict
 
 
 def get_average_cluster_parameters_forward_and_backward_from_map(
