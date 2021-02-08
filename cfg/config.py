@@ -164,6 +164,8 @@ def read_config(filename: str, update_neighbors: bool = True) -> Config:
                 base_index += NUM_SECOND_NEAREST_NEIGHBORS
                 for i in range(NUM_THIRD_NEAREST_NEIGHBORS):
                     atom.append_third_nearest_neighbor_list(int(positions[base_index + i]))
+                for i in range(NUM_FOURTH_NEAREST_NEIGHBORS):
+                    atom.append_fourth_nearest_neighbor_list(int(positions[base_index + i]))
                 neighbor_found = True
         except IndexError:
             pass
@@ -193,7 +195,8 @@ def write_config(config: Config, filename: str, neighbors_info: bool = True) -> 
             content += " # "
             content += ''.join(
                 str(index) + ' ' for index in
-                atom.first_nearest_neighbor_list + atom.second_nearest_neighbor_list + atom.third_nearest_neighbor_list)
+                atom.first_nearest_neighbor_list + atom.second_nearest_neighbor_list +
+                atom.third_nearest_neighbor_list + atom.fourth_nearest_neighbor_list)
         content += '\n'
 
     with open(filename, 'w') as f:
@@ -310,14 +313,47 @@ def get_pair_rotation_matrix(config: Config, jump_pair: typing.Tuple[int, int]) 
     return np.array((pair_direction, vertical_vector, np.cross(pair_direction, vertical_vector))).transpose()
 
 
-def get_first_and_second_third_neighbors_set_of_jump_pair(
+def get_first_second_third_neighbors_set_of_jump_pair(
         config: Config, jump_pair: typing.Tuple[int, int]) -> typing.Set[int]:
     near_neighbors_hashset: typing.Set[int] = set()
     for i in jump_pair:
         atom = config.atom_list[i]
-        for j in atom.first_nearest_neighbor_list \
-                 + atom.second_nearest_neighbor_list + atom.third_nearest_neighbor_list:
+        for j in atom.first_nearest_neighbor_list + atom.second_nearest_neighbor_list + atom.third_nearest_neighbor_list:
             near_neighbors_hashset.add(j)
+    return near_neighbors_hashset
+
+
+def get_more_neighbors_set_of_jump_pair(
+        config: Config, jump_pair: typing.Tuple[int, int]) -> typing.Set[int]:
+    near_neighbors_hashset: typing.Set[int] = set()
+    for i in jump_pair:
+        atom = config.atom_list[i]
+        for j in atom.first_nearest_neighbor_list + atom.second_nearest_neighbor_list + atom.third_nearest_neighbor_list:
+            near_neighbors_hashset.add(j)
+            atom = config.atom_list[j]
+            for k in atom.first_nearest_neighbor_list + atom.second_nearest_neighbor_list + atom.third_nearest_neighbor_list:
+                near_neighbors_hashset.add(k)
+    return near_neighbors_hashset
+
+
+def get_vacancy_index(config: Config) -> int:
+    for atom in config.atom_list:
+        if atom.elem_type == "X":
+            return atom.atom_id
+    raise NotImplementedError('No vacancy found')
+
+
+def get_neighbors_set_of_vacancy(config: Config, vacancy_index: int) -> typing.Set[int]:
+    near_neighbors_hashset: typing.Set[int] = set()
+    near_neighbors_hashset.add(vacancy_index)
+
+    for i in range(5):
+        new_set = copy.deepcopy(near_neighbors_hashset)
+        for index in new_set:
+            atom = config.atom_list[index]
+            for j in atom.first_nearest_neighbor_list:
+                near_neighbors_hashset.add(j)
+
     return near_neighbors_hashset
 
 

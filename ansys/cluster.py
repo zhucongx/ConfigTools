@@ -34,3 +34,36 @@ class Cluster(object):
         for atom in self._atom_list:
             key += atom.elem_type
         return key
+
+
+def generate_one_hot_encode_dict_for_type(type_set: typing.Set[str]) -> typing.Dict[str, typing.List[float]]:
+    sorted_type_set = sorted(type_set)
+    num_singlets = len(type_set)
+    encode_dict: typing.Dict[str, typing.List[float]] = dict()
+    counter = 0
+    for element in sorted_type_set:
+        element_encode = [0.] * num_singlets
+        element_encode[counter] = 1.
+        encode_dict[element] = element_encode
+        counter += 1
+
+    num_dimers = len(type_set) ** 2
+    counter = 0
+    for element1 in sorted_type_set:
+        for element2 in sorted_type_set:
+            element_encode = [0.] * num_dimers
+            element_encode[counter] = 1.
+            encode_dict[element1 + element2] = element_encode
+            counter += 1
+
+    num_trimers = len(type_set) ** 3
+    counter = 0
+    for element1 in sorted_type_set:
+        for element2 in sorted_type_set:
+            for element3 in sorted_type_set:
+                element_encode = [0.] * num_trimers
+                element_encode[counter] = 1.
+                encode_dict[element1 + element2 + element3] = element_encode
+                counter += 1
+
+    return encode_dict
