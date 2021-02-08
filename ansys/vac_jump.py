@@ -1,5 +1,5 @@
 from cfg.config import *
-from ansys.cluster import Cluster
+from ansys.cluster import Cluster, generate_one_hot_encode_dict_for_type
 from collections import OrderedDict
 import bisect
 import copy
@@ -10,27 +10,20 @@ import copy
 K_EPSILON = 1e-8
 
 
-def get_vacancy_index(config: Config) -> int:
-    for atom in config.atom_list:
-        if atom.elem_type == "X":
-            return atom.atom_id
-    raise NotImplementedError('No vacancy found')
-
-
-def _is_atom_smaller(lhs: Atom, rhs: Atom) -> bool:
-    relative_position_lhs = lhs.relative_position
-    relative_position_rhs = rhs.relative_position
-    diff_x = relative_position_lhs[0] - relative_position_rhs[0]
-    if diff_x < - K_EPSILON:
-        return True
-    if diff_x > K_EPSILON:
-        return False
-    diff_y = relative_position_lhs[1] - relative_position_rhs[1]
-    if diff_y < - K_EPSILON:
-        return True
-    if diff_y > K_EPSILON:
-        return False
-    return relative_position_lhs[2] < relative_position_rhs[2] - K_EPSILON
+# def _is_atom_smaller(lhs: Atom, rhs: Atom) -> bool:
+#     relative_position_lhs = lhs.relative_position
+#     relative_position_rhs = rhs.relative_position
+#     diff_x = relative_position_lhs[0] - relative_position_rhs[0]
+#     if diff_x < - K_EPSILON:
+#         return True
+#     if diff_x > K_EPSILON:
+#         return False
+#     diff_y = relative_position_lhs[1] - relative_position_rhs[1]
+#     if diff_y < - K_EPSILON:
+#         return True
+#     if diff_y > K_EPSILON:
+#         return False
+#     return relative_position_lhs[2] < relative_position_rhs[2] - K_EPSILON
 
 
 def _atom_sort_compare(lhs: Atom, rhs: Atom) -> bool:
@@ -109,9 +102,9 @@ def _rotate_atom_vector_and_sort_helper(atom_list: typing.List[Atom], reference_
 
     for i, atom in enumerate(atom_list):
         atom_list[i].atom_id = i
-    config = Config(reference_config.basis, atom_list)
-    config.update_neighbors()
-    return config.atom_list
+    out_config = Config(reference_config.basis, atom_list)
+    out_config.update_neighbors()
+    return out_config.atom_list
 
 
 def get_symmetrically_sorted_atom_vectors(config: Config, jump_pair: typing.Tuple[int, int]) -> \
@@ -127,7 +120,7 @@ def get_symmetrically_sorted_atom_vectors(config: Config, jump_pair: typing.Tupl
     -------
 
     """
-    atom_id_set = get_first_and_second_third_neighbors_set_of_jump_pair(config, jump_pair)
+    atom_id_set = get_first_second_third_neighbors_set_of_jump_pair(config, jump_pair)
     move_distance = np.full((3,), 0.5) - get_pair_center(config, jump_pair)
     logging.debug(f'move_distance {move_distance}')
     atom_list_forward: typing.List[Atom] = list()
@@ -206,7 +199,6 @@ def get_average_cluster_parameters_mapping(config: Config) -> typing.List[typing
     for atom in atom_vector:
         singlet_vector.append(Cluster(atom))
     _get_average_parameters_mapping_from_cluster_vector_helper(singlet_vector, cluster_mapping)
-
     # first nearest pairs
     first_pair_set: typing.Set[Cluster] = set()
     for atom1 in atom_vector:
@@ -214,7 +206,6 @@ def get_average_cluster_parameters_mapping(config: Config) -> typing.List[typing
             first_pair_set.add(Cluster(atom1, atom_vector[atom2_index]))
 
     _get_average_parameters_mapping_from_cluster_vector_helper(list(first_pair_set), cluster_mapping)
-
     # second nearest pairs
     second_pair_set: typing.Set[Cluster] = set()
     for atom1 in atom_vector:
@@ -233,28 +224,6 @@ def get_average_cluster_parameters_mapping(config: Config) -> typing.List[typing
     #                 triplets_set.add(Cluster(atom1, atom2, atom_vector[atom3_index]))
     # _get_average_parameters_mapping_from_cluster_vector_helper(list(triplets_set), cluster_mapping)
     return cluster_mapping
-
-
-def generate_one_hot_encode_dict_for_type(type_set: typing.Set[str]) -> typing.Dict[str, typing.List[float]]:
-    sorted_type_set = sorted(type_set)
-    num_singlets = len(type_set)
-    encode_dict: typing.Dict[str, typing.List[float]] = dict()
-    counter = 0
-    for element in sorted_type_set:
-        element_encode = [0.] * num_singlets
-        element_encode[counter] = 1.
-        encode_dict[element] = element_encode
-        counter += 1
-
-    num_pairs = len(type_set) ** 2
-    counter = 0
-    for element1 in sorted_type_set:
-        for element2 in sorted_type_set:
-            element_encode = [0.] * num_pairs
-            element_encode[counter] = 1.
-            encode_dict[element1 + element2] = element_encode
-            counter += 1
-    return encode_dict
 
 
 def get_average_cluster_parameters_forward_and_backward_from_map(
@@ -314,10 +283,9 @@ def get_one_hot_encoding_list_forward_and_backward_from_map(
         result.append(encode_list)
     return tuple(result)
 
-
-if __name__ == '__main__':
-    config = read_config("../test/test_files/test.cfg")
-    cl_mapping = get_average_cluster_parameters_mapping(config)
-    forward, backward = get_one_hot_encoding_list_forward_and_backward_from_map(
-        config, (18, 23), {'Al', 'Mg', 'Zn'}, cl_mapping)
-    print(len(forward))
+# if __name__ == '__main__':
+# config = read_config("../test/test_files/test.cfg")
+# cl_mapping = get_average_cluster_parameters_mapping(config)
+# forward, backward = get_one_hot_encoding_list_forward_and_backward_from_map(
+#     config, (18, 23), {'Al', 'Mg', 'Zn'}, cl_mapping)
+# print(len(forward))
