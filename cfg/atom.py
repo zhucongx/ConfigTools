@@ -26,6 +26,10 @@ class Atom(object):
         self._first_nearest_neighbor_list: typing.List[int] = list()
         self._second_nearest_neighbor_list: typing.List[int] = list()
         self._third_nearest_neighbor_list: typing.List[int] = list()
+        self._fourth_nearest_neighbor_list: typing.List[int] = list()
+        self._fifth_nearest_neighbor_list: typing.List[int] = list()
+        self._sixth_nearest_neighbor_list: typing.List[int] = list()
+        self._seventh_nearest_neighbor_list: typing.List[int] = list()
 
     @property
     def cartesian_position(self) -> np.ndarray:
@@ -59,6 +63,22 @@ class Atom(object):
     def third_nearest_neighbor_list(self) -> typing.List[int]:
         return self._third_nearest_neighbor_list
 
+    @property
+    def fourth_nearest_neighbor_list(self) -> typing.List[int]:
+        return self._fourth_nearest_neighbor_list
+
+    @property
+    def fifth_nearest_neighbor_list(self) -> typing.List[int]:
+        return self._fifth_nearest_neighbor_list
+
+    @property
+    def sixth_nearest_neighbor_list(self) -> typing.List[int]:
+        return self._sixth_nearest_neighbor_list
+
+    @property
+    def seventh_nearest_neighbor_list(self) -> typing.List[int]:
+        return self._seventh_nearest_neighbor_list
+
     @relative_position.setter
     def relative_position(self, position: np.ndarray):
         if position.shape != (3,):
@@ -88,10 +108,26 @@ class Atom(object):
     def append_third_nearest_neighbor_list(self, index: int) -> None:
         self._third_nearest_neighbor_list.append(index)
 
+    def append_fourth_nearest_neighbor_list(self, index: int) -> None:
+        self._fourth_nearest_neighbor_list.append(index)
+
+    def append_fifth_nearest_neighbor_list(self, index: int) -> None:
+        self._fifth_nearest_neighbor_list.append(index)
+
+    def append_sixth_nearest_neighbor_list(self, index: int) -> None:
+        self._sixth_nearest_neighbor_list.append(index)
+
+    def append_seventh_nearest_neighbor_list(self, index: int) -> None:
+        self._seventh_nearest_neighbor_list.append(index)
+
     def clean_neighbors_lists(self) -> None:
         self._first_nearest_neighbor_list.clear()
         self._second_nearest_neighbor_list.clear()
         self._third_nearest_neighbor_list.clear()
+        self._fourth_nearest_neighbor_list.clear()
+        self._fifth_nearest_neighbor_list.clear()
+        self._sixth_nearest_neighbor_list.clear()
+        self._seventh_nearest_neighbor_list.clear()
 
 
 def get_relative_distance_vector(atom1: Atom, atom2: Atom) -> np.ndarray:

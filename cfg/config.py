@@ -5,7 +5,7 @@ from collections import OrderedDict
 import typing
 import logging
 import numpy as np
-
+import copy
 
 
 class Config(object):
@@ -66,35 +66,58 @@ class Config(object):
 
     def update_neighbors(self, first_r_cutoff: float = FIRST_NEAREST_NEIGHBORS_CUTOFF,
                          second_r_cutoff: float = SECOND_NEAREST_NEIGHBORS_CUTOFF,
-                         third_r_cutoff: float = THIRD_NEAREST_NEIGHBORS_CUTOFF) -> None:
-        first_r_cutoff_square = first_r_cutoff * first_r_cutoff
-        second_r_cutoff_square = second_r_cutoff * second_r_cutoff
-        third_r_cutoff_square = third_r_cutoff * third_r_cutoff
-
+                         third_r_cutoff: float = THIRD_NEAREST_NEIGHBORS_CUTOFF,
+                         fourth_r_cutoff: float = FOURTH_NEAREST_NEIGHBORS_CUTOFF,
+                         fifth_r_cutoff: float = FIFTH_NEAREST_NEIGHBORS_CUTOFF,
+                         sixth_r_cutoff: float = SIXTH_NEAREST_NEIGHBORS_CUTOFF,
+                         seventh_r_cutoff: float = SEVENTH_NEAREST_NEIGHBORS_CUTOFF) -> None:
+        first_r_cutoff_square = first_r_cutoff ** 2
+        second_r_cutoff_square = second_r_cutoff ** 2
+        third_r_cutoff_square = third_r_cutoff ** 2
+        fourth_r_cutoff_square = fourth_r_cutoff ** 2
+        fifth_r_cutoff_square = fifth_r_cutoff ** 2
+        sixth_r_cutoff_square = sixth_r_cutoff ** 2
+        seventh_r_cutoff_square = seventh_r_cutoff ** 2
         for i in range(self.number_atoms):
             for j in range(i):
                 relative_distance_vector = get_relative_distance_vector(self._atom_list[i],
                                                                         self._atom_list[j])
                 absolute_distance_vector = relative_distance_vector.dot(self._basis)
 
-                if abs(absolute_distance_vector[0]) > third_r_cutoff:
+                if abs(absolute_distance_vector[0]) > sixth_r_cutoff:
                     continue
-                if abs(absolute_distance_vector[1]) > third_r_cutoff:
+                if abs(absolute_distance_vector[1]) > sixth_r_cutoff:
                     continue
-                if abs(absolute_distance_vector[2]) > third_r_cutoff:
+                if abs(absolute_distance_vector[2]) > sixth_r_cutoff:
                     continue
                 absolute_distance_square = np.inner(absolute_distance_vector, absolute_distance_vector)
-                if absolute_distance_square <= third_r_cutoff_square:
-                    if absolute_distance_square <= second_r_cutoff_square:
-                        if absolute_distance_square <= first_r_cutoff_square:
-                            self._atom_list[i].append_first_nearest_neighbor_list(j)
-                            self._atom_list[j].append_first_nearest_neighbor_list(i)
+                if absolute_distance_square <= seventh_r_cutoff_square:
+                    if absolute_distance_square <= sixth_r_cutoff_square:
+                        if absolute_distance_square <= fifth_r_cutoff_square:
+                            if absolute_distance_square <= fourth_r_cutoff_square:
+                                if absolute_distance_square <= third_r_cutoff_square:
+                                    if absolute_distance_square <= second_r_cutoff_square:
+                                        if absolute_distance_square <= first_r_cutoff_square:
+                                            self._atom_list[i].append_first_nearest_neighbor_list(j)
+                                            self._atom_list[j].append_first_nearest_neighbor_list(i)
+                                        else:
+                                            self._atom_list[i].append_second_nearest_neighbor_list(j)
+                                            self._atom_list[j].append_second_nearest_neighbor_list(i)
+                                    else:
+                                        self._atom_list[i].append_third_nearest_neighbor_list(j)
+                                        self._atom_list[j].append_third_nearest_neighbor_list(i)
+                                else:
+                                    self._atom_list[i].append_fourth_nearest_neighbor_list(j)
+                                    self._atom_list[j].append_fourth_nearest_neighbor_list(i)
+                            else:
+                                self._atom_list[i].append_fifth_nearest_neighbor_list(j)
+                                self._atom_list[j].append_fifth_nearest_neighbor_list(i)
                         else:
-                            self._atom_list[i].append_second_nearest_neighbor_list(j)
-                            self._atom_list[j].append_second_nearest_neighbor_list(i)
+                            self._atom_list[i].append_sixth_nearest_neighbor_list(j)
+                            self._atom_list[j].append_sixth_nearest_neighbor_list(i)
                     else:
-                        self._atom_list[i].append_third_nearest_neighbor_list(j)
-                        self._atom_list[j].append_third_nearest_neighbor_list(i)
+                        self._atom_list[i].append_seventh_nearest_neighbor_list(j)
+                        self._atom_list[j].append_seventh_nearest_neighbor_list(i)
 
 
 def read_config(filename: str, update_neighbors: bool = True) -> Config:
@@ -308,3 +331,22 @@ def rotate_atom_vector(atom_list: typing.List[Atom], rotation_matrix: np.ndarray
         relative_position -= np.floor(relative_position)
 
         atom_list[i].relative_position = relative_position
+
+# if __name__ == '__main__':
+#     config = read_config("../test/test_files/test.cfg")
+#     vacancy_id = get_vacancy_index(config)
+#     move_distance = np.full((3,), 0.5) - config.atom_list[vacancy_id].relative_position
+#
+#     atom_set = get_neighbors_set_of_vacancy(config, vacancy_id)
+#     atom_list = config.atom_list
+#     new_atom_list = list()
+#     for idx in atom_set:
+#         atom = atom_list[idx]
+#         relative_position = atom.relative_position
+#         relative_position += move_distance
+#         relative_position -= np.floor(relative_position)
+#         atom.relative_position = relative_position
+#         cartesian_position = (relative_position - np.full((3,), 0.5)).dot(config.basis)
+#         new_atom_list.append(atom_list[idx])
+#     new_config = Config(config.basis, new_atom_list)
+#     write_config(new_config, "test.cfg")
