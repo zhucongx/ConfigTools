@@ -29,10 +29,10 @@ K_EPSILON = 1e-8
 def _atom_sort_compare(lhs: Atom, rhs: Atom) -> bool:
     relative_position_lhs = lhs.relative_position
     relative_position_rhs = rhs.relative_position
-    diff_x = relative_position_lhs[0] - relative_position_rhs[0]
-    if diff_x < - K_EPSILON:
+    diff_x_sym = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
+    if diff_x_sym < - K_EPSILON:
         return True
-    if diff_x > K_EPSILON:
+    if diff_x_sym > K_EPSILON:
         return False
     diff_y_sym = abs(relative_position_lhs[1] - 0.5) - abs(relative_position_rhs[1] - 0.5)
     if diff_y_sym < - K_EPSILON:
@@ -43,6 +43,12 @@ def _atom_sort_compare(lhs: Atom, rhs: Atom) -> bool:
     if diff_z_sym < - K_EPSILON:
         return True
     if diff_z_sym > K_EPSILON:
+        return False
+
+    diff_x = relative_position_lhs[0] - relative_position_rhs[0]
+    if diff_x < - K_EPSILON:
+        return True
+    if diff_x > K_EPSILON:
         return False
     diff_y = relative_position_lhs[1] - relative_position_rhs[1]
     if diff_y < - K_EPSILON:
@@ -55,17 +61,16 @@ def _atom_sort_compare(lhs: Atom, rhs: Atom) -> bool:
 def _is_atom_smaller_symmetrically(lhs: Atom, rhs: Atom) -> bool:
     relative_position_lhs = lhs.relative_position
     relative_position_rhs = rhs.relative_position
-    diff_x = relative_position_lhs[0] - relative_position_rhs[0]
-    if diff_x < - K_EPSILON:
+    diff_x_sym = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
+    if diff_x_sym < - K_EPSILON:
         return True
-    if diff_x > K_EPSILON:
+    if diff_x_sym > K_EPSILON:
         return False
     diff_y = abs(relative_position_lhs[1] - 0.5) - abs(relative_position_rhs[1] - 0.5)
     if diff_y < - K_EPSILON:
         return True
     if diff_y > K_EPSILON:
         return False
-
     return abs(relative_position_lhs[2] - 0.5) < abs(relative_position_rhs[2] - 0.5) - K_EPSILON
 
 
@@ -226,26 +231,26 @@ def get_average_cluster_parameters_mapping(config: Config) -> typing.List[typing
     return cluster_mapping
 
 
-def get_average_cluster_parameters_forward_and_backward_from_map(
-        config: Config, jump_pair: typing.Tuple[int, int],
-        type_category_map: typing.Dict[str, float],
-        cluster_mapping: typing.List[typing.List[typing.List[int]]]) -> \
-        typing.Tuple[typing.List[float], typing.List[float]]:
-    result: typing.List[typing.List[float]] = list()
-    atom_vectors = get_symmetrically_sorted_atom_vectors(config, jump_pair)
-    for atom_vector in atom_vectors:
-        encode_list: typing.List[float] = list()
-        encode_list.append(1.0)
-        for cluster_vector in cluster_mapping:
-            sum_of_functional = 0.0
-            for cluster in cluster_vector:
-                cumulative_product = 1.0
-                for atom_index in cluster:
-                    cumulative_product *= type_category_map[atom_vector[atom_index].elem_type]
-                sum_of_functional += cumulative_product
-            encode_list.append(sum_of_functional / len(cluster_vector))
-        result.append(encode_list)
-    return tuple(result)
+# def get_average_cluster_parameters_forward_and_backward_from_map(
+#         config: Config, jump_pair: typing.Tuple[int, int],
+#         type_category_map: typing.Dict[str, float],
+#         cluster_mapping: typing.List[typing.List[typing.List[int]]]) -> \
+#         typing.Tuple[typing.List[float], typing.List[float]]:
+#     result: typing.List[typing.List[float]] = list()
+#     atom_vectors = get_symmetrically_sorted_atom_vectors(config, jump_pair)
+#     for atom_vector in atom_vectors:
+#         encode_list: typing.List[float] = list()
+#         encode_list.append(1.0)
+#         for cluster_vector in cluster_mapping:
+#             sum_of_functional = 0.0
+#             for cluster in cluster_vector:
+#                 cumulative_product = 1.0
+#                 for atom_index in cluster:
+#                     cumulative_product *= type_category_map[atom_vector[atom_index].elem_type]
+#                 sum_of_functional += cumulative_product
+#             encode_list.append(sum_of_functional / len(cluster_vector))
+#         result.append(encode_list)
+#     return tuple(result)
 
 
 def _element_wise_add_second_to_first(first_list: typing.List[float], second_list: typing.List[float]):
