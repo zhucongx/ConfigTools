@@ -7,7 +7,7 @@ import copy
 # import logging
 
 
-K_EPSILON = 1e-8
+K_EPSILON = 1e-10
 
 
 # def _is_atom_smaller(lhs: Atom, rhs: Atom) -> bool:
@@ -40,31 +40,16 @@ def _atom_sort_compare(lhs: Atom, rhs: Atom) -> bool:
     if diff_y_sym > K_EPSILON:
         return False
     diff_z_sym = abs(relative_position_lhs[2] - 0.5) - abs(relative_position_rhs[2] - 0.5)
-    if diff_z_sym < - K_EPSILON:
-        return True
-    if diff_z_sym > K_EPSILON:
-        return False
-
-    diff_x = relative_position_lhs[0] - relative_position_rhs[0]
-    if diff_x < - K_EPSILON:
-        return True
-    if diff_x > K_EPSILON:
-        return False
-    diff_y = relative_position_lhs[1] - relative_position_rhs[1]
-    if diff_y < - K_EPSILON:
-        return True
-    if diff_y > K_EPSILON:
-        return False
-    return relative_position_lhs[2] < relative_position_rhs[2] - K_EPSILON
+    return diff_z_sym < - K_EPSILON
 
 
 def _is_atom_smaller_symmetrically(lhs: Atom, rhs: Atom) -> bool:
     relative_position_lhs = lhs.relative_position
     relative_position_rhs = rhs.relative_position
-    diff_x_sym = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
-    if diff_x_sym < - K_EPSILON:
+    diff_x = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
+    if diff_x < - K_EPSILON:
         return True
-    if diff_x_sym > K_EPSILON:
+    if diff_x > K_EPSILON:
         return False
     diff_y = abs(relative_position_lhs[1] - 0.5) - abs(relative_position_rhs[1] - 0.5)
     if diff_y < - K_EPSILON:
@@ -209,25 +194,23 @@ def get_average_cluster_parameters_mapping(config: Config) -> typing.List[typing
     for atom1 in atom_vector:
         for atom2_index in atom1.first_nearest_neighbor_list:
             first_pair_set.add(Cluster(atom1, atom_vector[atom2_index]))
-
     _get_average_parameters_mapping_from_cluster_vector_helper(list(first_pair_set), cluster_mapping)
     # second nearest pairs
     second_pair_set: typing.Set[Cluster] = set()
     for atom1 in atom_vector:
         for atom2_index in atom1.second_nearest_neighbor_list:
             second_pair_set.add(Cluster(atom1, atom_vector[atom2_index]))
-
     _get_average_parameters_mapping_from_cluster_vector_helper(list(second_pair_set), cluster_mapping)
 
-    # # first nearest triplets
-    # triplets_set: typing.Set[Cluster] = set()
-    # for atom1 in atom_vector:
-    #     for atom2_index in atom1.first_nearest_neighbor_list:
-    #         atom2 = atom_vector[atom2_index]
-    #         for atom3_index in atom2.first_nearest_neighbor_list:
-    #             if atom3_index in atom1.first_nearest_neighbor_list:
-    #                 triplets_set.add(Cluster(atom1, atom2, atom_vector[atom3_index]))
-    # _get_average_parameters_mapping_from_cluster_vector_helper(list(triplets_set), cluster_mapping)
+    # first nearest triplets
+    triplets_set: typing.Set[Cluster] = set()
+    for atom1 in atom_vector:
+        for atom2_index in atom1.first_nearest_neighbor_list:
+            atom2 = atom_vector[atom2_index]
+            for atom3_index in atom2.first_nearest_neighbor_list:
+                if atom3_index in atom1.first_nearest_neighbor_list:
+                    triplets_set.add(Cluster(atom1, atom2, atom_vector[atom3_index]))
+    _get_average_parameters_mapping_from_cluster_vector_helper(list(triplets_set), cluster_mapping)
     return cluster_mapping
 
 

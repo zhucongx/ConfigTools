@@ -26,21 +26,24 @@ def build_pd_file(type_category_map, path='../data'):
         jump_pair = (int(line_list[0]), int(line_list[1]))
         migration_atom = config_start.atom_list[jump_pair[1]].elem_type
         barriers = (float(line_list[2]), float(line_list[3]))
+
         ground_energies = (float(line_list[4]), float(line_list[5]))
-        one_hot_encodes = ce.get_one_hot_encoding_list_forward_and_backward_from_map(
+        one_hot_encodes_forward = ce.get_one_hot_encoding_list_forward_and_backward_from_map(
             config_start, jump_pair, element_set, cluster_mapping)
 
         config_end = read_config(os.path.join(dir_path, 'end.cfg'))
         ground_encodes = [bc.get_encode_of_config(config_start, element_set),
                           bc.get_encode_of_config(config_end, element_set)]
+        one_hot_encodes_backward = ce.get_one_hot_encoding_list_forward_and_backward_from_map(
+            config_end, jump_pair, element_set, cluster_mapping)
 
         data[ct] = [i, migration_atom, barriers[0], barriers[0] - barriers[1], 0.5 * (barriers[0] + barriers[1]),
-                    ground_energies[0], ground_energies[1], one_hot_encodes[0],
-                    one_hot_encodes[1], ground_encodes[0], ground_encodes[1]]
+                    ground_energies[0], ground_energies[1], one_hot_encodes_forward[0],
+                    one_hot_encodes_backward[0], ground_encodes[0], ground_encodes[1]]
         ct += 1
         data[ct] = [i, migration_atom, barriers[1], barriers[1] - barriers[0], 0.5 * (barriers[0] + barriers[1]),
-                    ground_energies[1], ground_energies[0], one_hot_encodes[1],
-                    one_hot_encodes[0], ground_encodes[1], ground_encodes[0]]
+                    ground_energies[1], ground_energies[0], one_hot_encodes_backward[0],
+                    one_hot_encodes_forward[0], ground_encodes[1], ground_encodes[0]]
         ct += 1
 
     df = pd.DataFrame.from_dict(data, orient='index',
