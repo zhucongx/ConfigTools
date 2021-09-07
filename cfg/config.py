@@ -274,6 +274,21 @@ def write_poscar(config: Config, filename: str) -> None:
         f.write(content)
 
 
+def get_average_position_config(config1: Config, config2: Config) -> Config:
+    if config1.number_atoms != config2.number_atoms:
+        raise RuntimeError(f"first config has {config1.number_atoms} atoms but second has {config2.number_atoms}")
+    if np.linalg.norm(config1.basis - config2.basis) > 1e-6:
+        raise RuntimeError(f"base vectors do not match")
+    config1.clear_neighbors()
+    config2.clear_neighbors()
+    atom_list: typing.List[Atom] = list()
+    for atom1, atom2 in zip(config1.atom_list, config2.atom_list):
+        atom_list.append(get_average_relative_position_atom(atom1, atom2))
+    res = Config(config1.basis, atom_list)
+    res.convert_relative_to_cartesian()
+    return res
+
+
 def get_pair_center(config: Config, jump_pair: typing.Tuple[int, int]) -> np.ndarray:
     first, second = jump_pair
     center_position = np.zeros(3)
