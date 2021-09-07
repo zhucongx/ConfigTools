@@ -1,5 +1,5 @@
 from cfg.constants import *
-from cfg.atom import Atom, get_relative_distance_vector
+from cfg.atom import *
 from cfg.atomic_mass import get_atomic_mass
 from collections import OrderedDict
 import typing
@@ -16,7 +16,7 @@ class Config(object):
             if isinstance(basis, list):
                 basis = np.array(basis, dtype=np.float64)
             if basis.shape != (3, 3):
-                raise RuntimeError(f'input basis size is not (3, 3) but {basis.shape}')
+                raise RuntimeError(f"input basis size is not (3, 3) but {basis.shape}")
             self._basis: np.ndarray = basis
 
         if atom_list is None:
@@ -121,11 +121,11 @@ class Config(object):
 
 
 def read_config(filename: str, update_neighbors: bool = True) -> Config:
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         content_list = f.readlines()
 
     first_line_list = content_list[0].split()
-    num_atoms = int(first_line_list[first_line_list.index('=') + 1])
+    num_atoms = int(first_line_list[first_line_list.index("=") + 1])
     scale = float(content_list[1].split()[2])
     basis_xx = float(content_list[2].split()[2])
     basis_xy = float(content_list[3].split()[2])
@@ -154,7 +154,7 @@ def read_config(filename: str, update_neighbors: bool = True) -> Config:
 
         atom = Atom(id_count, mass, elem_type, float(positions[0]), float(positions[1]), float(positions[2]))
         try:
-            if positions[3] == '#':
+            if positions[3] == "#":
                 base_index = 4
                 for i in range(NUM_FIRST_NEAREST_NEIGHBORS):
                     atom.append_first_nearest_neighbor_list(int(positions[base_index + i]))
@@ -174,37 +174,37 @@ def read_config(filename: str, update_neighbors: bool = True) -> Config:
 
     config = Config(basis, atom_list)
     config.convert_relative_to_cartesian()
-    logging.debug(f'Found neighbors {neighbor_found}')
+    logging.debug(f"Found neighbors {neighbor_found}")
     if (not neighbor_found) and update_neighbors:
-        logging.debug(f'Finding neighbors')
+        logging.debug(f"Finding neighbors")
         config.update_neighbors()
 
     return config
 
 
 def write_config(config: Config, filename: str, neighbors_info: bool = True) -> None:
-    content = 'Number of particles = ' + str(config.number_atoms) + '\nA = 1.0 Angstrom (basic length-scale)\n'
-    content += f'H0(1,1) = {config.basis[0][0]} A\nH0(1,2) = {config.basis[0][1]} A\nH0(1,3) = {config.basis[0][2]} A\n'
-    content += f'H0(2,1) = {config.basis[1][0]} A\nH0(2,2) = {config.basis[1][1]} A\nH0(2,3) = {config.basis[1][2]} A\n'
-    content += f'H0(3,1) = {config.basis[2][0]} A\nH0(3,2) = {config.basis[2][1]} A\nH0(3,3) = {config.basis[2][2]} A\n'
-    content += '.NO_VELOCITY.\nentry_count = 3\n'
+    content = "Number of particles = " + str(config.number_atoms) + "\nA = 1.0 Angstrom (basic length-scale)\n"
+    content += f"H0(1,1) = {config.basis[0][0]} A\nH0(1,2) = {config.basis[0][1]} A\nH0(1,3) = {config.basis[0][2]} A\n"
+    content += f"H0(2,1) = {config.basis[1][0]} A\nH0(2,2) = {config.basis[1][1]} A\nH0(2,3) = {config.basis[1][2]} A\n"
+    content += f"H0(3,1) = {config.basis[2][0]} A\nH0(3,2) = {config.basis[2][1]} A\nH0(3,3) = {config.basis[2][2]} A\n"
+    content += ".NO_VELOCITY.\nentry_count = 3\n"
     for atom in config.atom_list:
-        content += str(atom.mass) + '\n' + atom.elem_type + '\n'
-        content += np.array2string(atom.relative_position, formatter={'float_kind': lambda x: "%.16f" % x})[1:-1]
+        content += str(atom.mass) + "\n" + atom.elem_type + "\n"
+        content += np.array2string(atom.relative_position, formatter={"float_kind": lambda x: "%.16f" % x})[1:-1]
         if neighbors_info:
             content += " # "
-            content += ''.join(
-                str(index) + ' ' for index in
+            content += "".join(
+                str(index) + " " for index in
                 atom.first_nearest_neighbor_list + atom.second_nearest_neighbor_list +
                 atom.third_nearest_neighbor_list + atom.fourth_nearest_neighbor_list)
-        content += '\n'
+        content += "\n"
 
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         f.write(content)
 
 
 def read_poscar(filename: str, update_neighbors: bool = True) -> Config:
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         content_list = f.readlines()
 
     # get scale factor ad
@@ -218,11 +218,11 @@ def read_poscar(filename: str, update_neighbors: bool = True) -> Config:
     elem_numbers_list = content_list[6].split()
     elem_numbers_list = [int(i) for i in elem_numbers_list]
 
-    if content_list[7][0] in 'Ss':
-        relative_option = content_list[8][0] in 'Dd'
+    if content_list[7][0] in "Ss":
+        relative_option = content_list[8][0] in "Dd"
         data_begin_index = 9
     else:
-        relative_option = content_list[7][0] in 'Dd'
+        relative_option = content_list[7][0] in "Dd"
         data_begin_index = 8
 
     atom_list: typing.List[Atom] = list()
@@ -242,35 +242,35 @@ def read_poscar(filename: str, update_neighbors: bool = True) -> Config:
         config.convert_cartesian_to_relative()
 
     if update_neighbors:
-        logging.debug(f'Finding neighbors')
+        logging.debug(f"Finding neighbors")
         config.update_neighbors()
     return config
 
 
 def write_poscar(config: Config, filename: str) -> None:
-    content = '#comment\n1.0\n'
+    content = "#comment\n1.0\n"
     for basis_row in config.basis:
         for base in basis_row:
-            content += f'{base} '
-        content += '\n'
+            content += f"{base} "
+        content += "\n"
     element_list_map = config.get_element_list_map()
 
-    element_str = ''
-    count_str = ''
+    element_str = ""
+    count_str = ""
     for element, element_list in element_list_map.items():
-        if element == 'X':
+        if element == "X":
             continue
-        element_str += element + ' '
-        count_str += str(len(element_list)) + ' '
-    content += element_str + '\n' + count_str + '\n'
-    content += 'Direct\n'
+        element_str += element + " "
+        count_str += str(len(element_list)) + " "
+    content += element_str + "\n" + count_str + "\n"
+    content += "Direct\n"
     for element, element_list in element_list_map.items():
-        if element == 'X':
+        if element == "X":
             continue
         for index in element_list:
             content += np.array2string(config.atom_list[int(index)].relative_position,
-                                       formatter={'float_kind': lambda x: "%.16f" % x})[1:-1] + '\n'
-    with open(filename, 'w') as f:
+                                       formatter={"float_kind": lambda x: "%.16f" % x})[1:-1] + "\n"
+    with open(filename, "w") as f:
         f.write(content)
 
 
@@ -304,7 +304,7 @@ def get_pair_rotation_matrix(config: Config, jump_pair: typing.Tuple[int, int]) 
         # to exam if jump_vector and pair_direction perpendicular
         dot_prod = np.dot(jump_vector, pair_direction)
         if abs(dot_prod) < 1e-6:
-            logging.debug(f'dot_prod value is {dot_prod}')
+            logging.debug(f"dot_prod value is {dot_prod}")
             vertical_vector = jump_vector
             vertical_vector /= np.linalg.norm(vertical_vector)
             break
@@ -340,7 +340,7 @@ def get_vacancy_index(config: Config) -> int:
     for atom in config.atom_list:
         if atom.elem_type == "X":
             return atom.atom_id
-    raise NotImplementedError('No vacancy found')
+    raise NotImplementedError("No vacancy found")
 
 
 def get_neighbors_set_of_vacancy(config: Config, vacancy_index: int) -> typing.Set[int]:
@@ -368,7 +368,7 @@ def rotate_atom_vector(atom_list: typing.List[Atom], rotation_matrix: np.ndarray
 
         atom_list[i].relative_position = relative_position
 
-# if __name__ == '__main__':
+# if __name__ == "__main__":
 #     config = read_config("../test/test_files/test.cfg")
 #     vacancy_id = get_vacancy_index(config)
 #     move_distance = np.full((3,), 0.5) - config.atom_list[vacancy_id].relative_position

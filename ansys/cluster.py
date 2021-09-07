@@ -30,7 +30,7 @@ class Cluster(object):
 
     @property
     def type_key(self) -> str:
-        key = ''
+        key = ""
         for atom in self._atom_list:
             key += atom.elem_type
         return key

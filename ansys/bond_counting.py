@@ -28,10 +28,10 @@ class Bond(object):
         return hash(self.type1) ^ hash(self.type2)
 
     def __str__(self):
-        return '-'.join((self.type1, self.type2))
+        return "-".join((self.type1, self.type2))
 
     def __repr__(self):
-        return '-'.join((self.type1, self.type2))
+        return "-".join((self.type1, self.type2))
 
 
 def count_all_bond(config: Config, type_set: typing.Set[str]):
@@ -56,47 +56,47 @@ def count_all_bond(config: Config, type_set: typing.Set[str]):
 
     for atom in config.atom_list:
         type1 = atom.elem_type
-        if type1 == 'X':
+        if type1 == "X":
             continue
         for index in atom.first_nearest_neighbor_list:
             type2 = config.atom_list[index].elem_type
-            if type2 == 'X':
+            if type2 == "X":
                 continue
             bond = Bond(type1, type2)
             first_bond_count[bond] += 1
         for index in atom.second_nearest_neighbor_list:
             type2 = config.atom_list[index].elem_type
-            if type2 == 'X':
+            if type2 == "X":
                 continue
             bond = Bond(type1, type2)
             second_bond_count[bond] += 1
         for index in atom.third_nearest_neighbor_list:
             type2 = config.atom_list[index].elem_type
-            if type2 == 'X':
+            if type2 == "X":
                 continue
             bond = Bond(type1, type2)
             third_bond_count[bond] += 1
         for index in atom.fourth_nearest_neighbor_list:
             type2 = config.atom_list[index].elem_type
-            if type2 == 'X':
+            if type2 == "X":
                 continue
             bond = Bond(type1, type2)
             fourth_bond_count[bond] += 1
         for index in atom.fifth_nearest_neighbor_list:
             type2 = config.atom_list[index].elem_type
-            if type2 == 'X':
+            if type2 == "X":
                 continue
             bond = Bond(type1, type2)
             fifth_bond_count[bond] += 1
         for index in atom.sixth_nearest_neighbor_list:
             type2 = config.atom_list[index].elem_type
-            if type2 == 'X':
+            if type2 == "X":
                 continue
             bond = Bond(type1, type2)
             sixth_bond_count[bond] += 1
         for index in atom.seventh_nearest_neighbor_list:
             type2 = config.atom_list[index].elem_type
-            if type2 == 'X':
+            if type2 == "X":
                 continue
             bond = Bond(type1, type2)
             seventh_bond_count[bond] += 1
@@ -127,7 +127,7 @@ def count_all_bond(config: Config, type_set: typing.Set[str]):
 
 def get_encode_of_config(config: Config, type_set: typing.Set[str]):
     res = []
-    first, second, third, fourth, fifth, sixth, seventh = count_all_bond(config, {'Al', 'Mg', 'Zn'})
+    first, second, third, fourth, fifth, sixth, seventh = count_all_bond(config, {"Al", "Mg", "Zn"})
     for bond in first.keys():
         res.append(first[bond])
     for bond in second.keys():
@@ -145,7 +145,7 @@ def get_encode_of_config(config: Config, type_set: typing.Set[str]):
     return res
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     config = read_config("../test/test_files/test.cfg")
     # atom1 = config.atom_list[0]
     # res = []
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     # res = sorted(res)
     # for i in res:
     #     print(i)
-    a, b, c, d, e, f, g = count_all_bond(config, {'Al', 'Mg', 'Zn'})
+    a, b, c, d, e, f, g = count_all_bond(config, {"Al", "Mg", "Zn"})
 
     print(a)
     print(b)

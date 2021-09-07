@@ -41,6 +41,8 @@ class Net1(torch.nn.Module):
 
 class Net2(torch.nn.Module):
     pass
+
+
 #     def __init__(self):
 #         super(Net2, self).__init__()
 #         self.conv1 = GCNConv(3, 12)
@@ -64,7 +66,7 @@ class Net2(torch.nn.Module):
 #         return sum(p.numel() for p in model.parameters() if p.requires_grad)
 #
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     model1 = Net1()
     print(model1)
     print(model1.count_parameters())

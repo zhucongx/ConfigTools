@@ -84,11 +84,11 @@ def _rotate_atom_vector_and_sort_helper(atom_list: typing.List[Atom], reference_
 
     """
     rotate_atom_vector(atom_list, get_pair_rotation_matrix(reference_config, jump_pair))
-    logging.debug(f'Init: {[atom.atom_id for atom in atom_list]}')
+    logging.debug(f"Init: {[atom.atom_id for atom in atom_list]}")
 
     Atom.__lt__ = lambda self, other: _atom_sort_compare(self, other)
     atom_list.sort()
-    logging.debug(f'Finial: {[atom.atom_id for atom in atom_list]}')
+    logging.debug(f"Finial: {[atom.atom_id for atom in atom_list]}")
 
     for i, atom in enumerate(atom_list):
         atom_list[i].atom_id = i
@@ -112,7 +112,7 @@ def get_symmetrically_sorted_atom_vectors(config: Config, jump_pair: typing.Tupl
     """
     atom_id_set = get_first_second_third_neighbors_set_of_jump_pair(config, jump_pair)
     move_distance = np.full((3,), 0.5) - get_pair_center(config, jump_pair)
-    logging.debug(f'move_distance {move_distance}')
+    logging.debug(f"move_distance {move_distance}")
     atom_list_forward: typing.List[Atom] = list()
     vacancy_relative_position = np.zeros(3)
     vacancy_cartesian_position = np.zeros(3)
@@ -262,7 +262,7 @@ def get_one_hot_encoding_list_forward_and_backward_from_map(
         for cluster_vector in cluster_mapping:
             sum_of_list = [0.0] * (len(type_set) ** len(cluster_vector[0]))
             for cluster in cluster_vector:
-                cluster_type_key = ''
+                cluster_type_key = ""
                 for atom_index in cluster:
                     cluster_type_key += atom_vector[atom_index].elem_type
                 _element_wise_add_second_to_first(sum_of_list, one_hot_encode_dict[cluster_type_key])
@@ -271,9 +271,9 @@ def get_one_hot_encoding_list_forward_and_backward_from_map(
         result.append(encode_list)
     return tuple(result)
 
-# if __name__ == '__main__':
+# if __name__ == "__main__":
 # config = read_config("../test/test_files/test.cfg")
 # cl_mapping = get_average_cluster_parameters_mapping(config)
 # forward, backward = get_one_hot_encoding_list_forward_and_backward_from_map(
-#     config, (18, 23), {'Al', 'Mg', 'Zn'}, cl_mapping)
+#     config, (18, 23), {"Al", "Mg", "Zn"}, cl_mapping)
 # print(len(forward))
