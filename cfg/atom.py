@@ -129,12 +129,15 @@ class Atom(object):
         self._sixth_nearest_neighbor_list.clear()
         self._seventh_nearest_neighbor_list.clear()
 
+    def __repr__(self):
+        return f"<{self._atom_id}, {self.elem_type}>"
+
 
 def get_average_relative_position_atom(atom1: Atom, atom2: Atom) -> Atom:
     if atom1.elem_type != atom2.elem_type:
         raise RuntimeError(f"types do not match")
-    if atom1.atom_id != atom2.elem_type:
-        raise RuntimeError(f"atom ID do not match")
+    if atom1.atom_id != atom2.atom_id:
+        raise RuntimeError(f"atom ID do not match, {atom1.atom_id}, {atom2.atom_id}")
     relative_distance_vector = get_relative_distance_vector(atom1, atom2)
     atom1_relative_position = atom1.relative_position
     res_relative_position = 0.5 * relative_distance_vector + atom1_relative_position
@@ -143,10 +146,8 @@ def get_average_relative_position_atom(atom1: Atom, atom2: Atom) -> Atom:
             res_relative_position[i] -= 1
         while res_relative_position[i] < 0:
             res_relative_position[i] += 1
-
-    res = atom1
-    res.relative_position = res_relative_position
-    return res
+    x, y, z = res_relative_position
+    return Atom(atom1.atom_id, atom1.mass, atom1.elem_type, x, y, z)
 
 
 def get_relative_distance_vector(atom1: Atom, atom2: Atom) -> np.ndarray:

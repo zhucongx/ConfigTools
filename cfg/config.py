@@ -383,6 +383,16 @@ def rotate_atom_vector(atom_list: typing.List[Atom], rotation_matrix: np.ndarray
 
         atom_list[i].relative_position = relative_position
 
+
+def get_config_system(config: Config) -> str:
+    type_set = set()
+    for atom in config.atom_list:
+        if atom.elem_type == "X":
+            continue
+        type_set.add(atom.elem_type)
+    type_list = sorted(list(type_set))
+    return "-".join(type_list)
+
 # if __name__ == "__main__":
 #     config = read_config("../test/test_files/test.cfg")
 #     vacancy_id = get_vacancy_index(config)
