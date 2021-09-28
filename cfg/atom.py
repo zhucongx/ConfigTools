@@ -129,6 +129,8 @@ class Atom(object):
         self._sixth_nearest_neighbor_list.clear()
         self._seventh_nearest_neighbor_list.clear()
 
+    def __hex__(self):
+        return hash
     def __repr__(self):
         return f"<{self._atom_id}, {self.elem_type}>"
 

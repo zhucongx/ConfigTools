@@ -4,15 +4,16 @@ import typing
 import numpy as np
 import pandas as pd
 from cfg.config import Config, read_config, get_config_system
-import ansys.cluster_expansion as ce
-import bond_counting as bc
+import ansys.cluster_expansion_symmetry as ces
+import ansys.cluster_expansion_periodic as cep
+import ansys.bond_counting as bc
 from tqdm import tqdm
 
 
-def build_pd_file(type_category_map, path="../data"):
-    element_set = set(type_category_map.keys())
+def build_pd_file(element_set, path="../data"):
     reference_config = read_config(os.path.join(path, "raw/config0", "start.cfg"))
-    cluster_mapping = ce.get_average_cluster_parameters_mapping(reference_config)
+    cluster_mapping_symmetry = ces.get_average_cluster_parameters_mapping(reference_config)
+    cluster_mapping_periodic = cep.get_average_cluster_parameters_mapping(reference_config)
 
     df_barriers = pd.read_csv(os.path.join(path, "raw", "barriers.txt"), sep='\t')
 
@@ -22,6 +23,7 @@ def build_pd_file(type_category_map, path="../data"):
         dir_path = os.path.join(path, "raw/config" + str(i))
 
         config_start = read_config(os.path.join(dir_path, "start.cfg"))
+        config_end = read_config(os.path.join(dir_path, "end.cfg"))
 
         jump_pair = (df_barriers.at[i, 'VacID'], df_barriers.at[i, 'JumpID'])
         migration_atom = config_start.atom_list[jump_pair[1]].elem_type
@@ -46,48 +48,56 @@ def build_pd_file(type_category_map, path="../data"):
         energy_list_back = energy_list - energy_end
         energy_list_back = energy_list_back[::-1]
 
-        one_hot_encodes_forward = ce.get_one_hot_encoding_list_forward_and_backward_from_map(
-            config_start, jump_pair, element_set, cluster_mapping)
+        one_hot_encodes_forward = ces.get_one_hot_encoding_list_forward_and_backward_from_map(
+            config_start, jump_pair, element_set, cluster_mapping_symmetry)
+        one_hot_encodes_backward = ces.get_one_hot_encoding_list_forward_and_backward_from_map(
+            config_end, jump_pair, element_set, cluster_mapping_symmetry)
 
-        config_end = read_config(os.path.join(dir_path, "end.cfg"))
-        ground_encode_initial = bc.get_encode_of_config(config_start, element_set)
-        ground_encode_final = bc.get_encode_of_config(config_end, element_set)
-
+        bond_counting_ground_encode_start = bc.get_encode_of_config(config_start, element_set)
+        bond_counting_ground_encode_end = bc.get_encode_of_config(config_end, element_set)
         bond_change_forward = []
         bond_change_backward = []
-        for x, y in zip(ground_encode_initial, ground_encode_final):
+        for x, y in zip(bond_counting_ground_encode_start, bond_counting_ground_encode_end):
             bond_change_forward.append(y - x)
             bond_change_backward.append(x - y)
 
-        one_hot_encodes_backward = ce.get_one_hot_encoding_list_forward_and_backward_from_map(
-            config_end, jump_pair, element_set, cluster_mapping)
+        cluster_expansion_ground_encode_start = cep.get_one_hot_encoding_list_from_map(
+            config_start, element_set, cluster_mapping_periodic)
+        cluster_expansion_ground_encode_end = cep.get_one_hot_encoding_list_from_map(
+            config_end, element_set, cluster_mapping_periodic)
 
         data[ct] = [i, migration_atom, migration_system, barriers[0], barriers[0] - barriers[1],
                     0.5 * (barriers[0] + barriers[1]), ground_energies[0], ground_energies[1],
                     distance, distance_list[-1], force,
                     one_hot_encodes_forward[0], one_hot_encodes_backward[0],
-                    ground_encode_initial, ground_encode_final, bond_change_forward, bond_change_backward,
+                    bond_counting_ground_encode_start, bond_counting_ground_encode_end,
+                    bond_change_forward, bond_change_backward,
+                    cluster_expansion_ground_encode_start, cluster_expansion_ground_encode_end,
                     distance_list, energy_list]
         ct += 1
         data[ct] = [i, migration_atom, migration_system, barriers[1], barriers[1] - barriers[0],
                     0.5 * (barriers[0] + barriers[1]), ground_energies[1], ground_energies[0],
                     distance, distance_list_back[-1], force,
                     one_hot_encodes_backward[0], one_hot_encodes_forward[0],
-                    ground_encode_final, ground_encode_initial, bond_change_backward, bond_change_forward,
+                    bond_counting_ground_encode_end, bond_counting_ground_encode_start,
+                    bond_change_backward, bond_change_forward,
+                    cluster_expansion_ground_encode_end, cluster_expansion_ground_encode_start,
                     distance_list_back, energy_list_back]
         ct += 1
 
     print("done!!!!!")
-    df = pd.DataFrame.from_dict(data, orient="index",
-                                columns=["index", "migration_atom", "migration_system",
-                                         "migration_barriers", "energy_difference", "e0",
-                                         "energy_start", "energy_end",
-                                         "distance", "min_erg_distance", "saddle_force",
-                                         "one_hot_encode_forward", "one_hot_encode_backward",
-                                         "energy_encode_start", "energy_encode_end", "bond_change_encode_forward",
-                                         "bond_change_encode_backward", "distance_list", "energy_list"])
+    df = pd.DataFrame.from_dict(
+        data, orient="index",
+        columns=["index", "migration_atom", "migration_system", "migration_barriers", "energy_difference",
+                 "e0", "energy_start", "energy_end",
+                 "distance", "min_erg_distance", "saddle_force",
+                 "one_hot_encode_forward", "one_hot_encode_backward",
+                 "bond_counting_encode_start", "bond_counting_encode_end",
+                 "bond_change_encode_forward", "bond_change_encode_backward",
+                 "cluster_expansion_encode_start", "cluster_expansion_encode_end",
+                 "distance_list", "energy_list"])
     df.to_pickle(os.path.join(path, "processed", "linear_regression.pkl"))
 
 
 if __name__ == "__main__":
-    build_pd_file({"Al": 0, "Mg": 2, "Zn": -1})
+    build_pd_file({"Al", "Mg", "Zn"})

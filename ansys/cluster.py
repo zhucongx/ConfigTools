@@ -7,6 +7,8 @@ class Cluster(object):
     def __init__(self, *atoms: Atom):
         self._atom_list: typing.List[Atom] = list()
         for insert_atom in atoms:
+            if insert_atom.elem_type == "X":
+                print("type X..!!!")
             self._atom_list.append(copy.deepcopy(insert_atom))
 
         self._atom_list.sort(key=lambda sort_atom: sort_atom.atom_id)
@@ -18,10 +20,8 @@ class Cluster(object):
         return True
 
     def __hash__(self):
-        the_hash = hash(self._atom_list[0].atom_id)
-        if len(self._atom_list) > 1:
-            for atom in self._atom_list[1:]:
-                the_hash = the_hash ^ hash(atom.atom_id)
+        atom_id_list = [atom.atom_id for atom in self._atom_list]
+        the_hash = hash(tuple(atom_id_list))
         return the_hash
 
     @property
@@ -35,6 +35,9 @@ class Cluster(object):
             key += atom.elem_type
         return key
 
+    @property
+    def size(self) ->int:
+        return len(self._atom_list)
 
 def generate_one_hot_encode_dict_for_type(type_set: typing.Set[str]) -> typing.Dict[str, typing.List[float]]:
     sorted_type_set = sorted(type_set)
@@ -47,23 +50,46 @@ def generate_one_hot_encode_dict_for_type(type_set: typing.Set[str]) -> typing.D
         encode_dict[element] = element_encode
         counter += 1
 
-    num_dimers = len(type_set) ** 2
+    num_pairs = len(type_set) ** 2
     counter = 0
     for element1 in sorted_type_set:
         for element2 in sorted_type_set:
-            element_encode = [0.] * num_dimers
+            element_encode = [0.] * num_pairs
             element_encode[counter] = 1.
             encode_dict[element1 + element2] = element_encode
             counter += 1
 
-    num_trimers = len(type_set) ** 3
+    num_triplets = len(type_set) ** 3
     counter = 0
     for element1 in sorted_type_set:
         for element2 in sorted_type_set:
             for element3 in sorted_type_set:
-                element_encode = [0.] * num_trimers
+                element_encode = [0.] * num_triplets
                 element_encode[counter] = 1.
                 encode_dict[element1 + element2 + element3] = element_encode
                 counter += 1
 
+    num_quadruplets = len(type_set) ** 4
+    counter = 0
+    for element1 in sorted_type_set:
+        for element2 in sorted_type_set:
+            for element3 in sorted_type_set:
+                for element4 in sorted_type_set:
+                    element_encode = [0.] * num_quadruplets
+                    element_encode[counter] = 1.
+                    encode_dict[element1 + element2 + element3 + element4] = element_encode
+                    counter += 1
+
     return encode_dict
+
+
+def element_wise_add_second_to_first(first_list: typing.List[float], second_list: typing.List[float]):
+    if len(first_list) != len(second_list):
+        raise RuntimeError("Size mismatch")
+    for i in range(len(first_list)):
+        first_list[i] += second_list[i]
+
+
+def element_wise_divide_float_from_list(float_list: typing.List[float], divisor: float):
+    for i in range(len(float_list)):
+        float_list[i] /= divisor
