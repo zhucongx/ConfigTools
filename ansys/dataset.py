@@ -16,6 +16,7 @@ def build_pd_file(element_set, path="../data"):
     cluster_mapping_periodic = cep.get_average_cluster_parameters_mapping(reference_config)
     df_barriers = pd.read_csv(os.path.join(path, "raw", "barriers.txt"), sep='\t')
     ct = 0
+
     data = dict()
     for i in tqdm(range(len(df_barriers)), desc="Loading configs ..."):
         dir_path = os.path.join(path, "raw/config" + str(i))
