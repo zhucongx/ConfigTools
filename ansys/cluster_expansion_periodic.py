@@ -24,7 +24,7 @@ def _is_atom_smaller(lhs: Atom, rhs: Atom) -> bool:
         return True
     if diff_y > K_EPSILON:
         return False
-    return relative_position_lhs[2] - relative_position_rhs[2] - K_EPSILON
+    return relative_position_lhs[2] < relative_position_rhs[2] - K_EPSILON
 
 
 def _is_cluster_smaller_symmetrically(lhs: Cluster, rhs: Cluster) -> bool:
