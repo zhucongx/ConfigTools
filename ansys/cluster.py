@@ -36,8 +36,9 @@ class Cluster(object):
         return key
 
     @property
-    def size(self) ->int:
+    def size(self) -> int:
         return len(self._atom_list)
+
 
 def generate_one_hot_encode_dict_for_type(type_set: typing.Set[str]) -> typing.Dict[str, typing.List[float]]:
     sorted_type_set = sorted(type_set)

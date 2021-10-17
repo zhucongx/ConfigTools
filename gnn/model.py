@@ -1,4 +1,4 @@
-from ansys.vac_jump import get_symmetrically_sorted_atom_vectors
+from ansys.vac_jump import _get_symmetrically_sorted_atom_vectors
 import torch
 from torch.nn import Linear, Sequential
 import torch.nn.functional as F

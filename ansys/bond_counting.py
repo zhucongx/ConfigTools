@@ -1,8 +1,9 @@
-from cfg.config import *
+from cfg import *
 from collections import OrderedDict
 import bisect
 import copy
 import math
+import typing
 
 
 class Bond(object):

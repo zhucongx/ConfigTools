@@ -1,6 +1,6 @@
 import os
 from cfg.config import *
-from ansys.vac_jump import get_symmetrically_sorted_atom_vectors
+from ansys.vac_jump import _get_symmetrically_sorted_atom_vectors
 import typing
 import torch
 import networkx as nx
@@ -24,7 +24,7 @@ bond_encoding_dict = {("Al", "Al"): [0, 0, 0, 0, 0, 0, 0, 0, 1],
 def build_data_from_config(config: Config,
                            jump_pair: typing.Tuple[int, int],
                            barrier: typing.Tuple[float, float]) -> typing.List[Data]:
-    atom_vectors = get_symmetrically_sorted_atom_vectors(config, jump_pair)
+    atom_vectors = _get_symmetrically_sorted_atom_vectors(config, jump_pair)
     data_list = []
     i = 0
     for atom_vector in atom_vectors:

@@ -1,5 +1,5 @@
 from cfg.constants import *
-from cfg.atom import *
+from cfg.atom import Atom, get_average_relative_position_atom, get_relative_distance_vector
 from cfg.atomic_mass import get_atomic_mass
 from collections import OrderedDict
 import typing
@@ -50,6 +50,13 @@ class Config(object):
         inverse_basis = np.linalg.inv(self._basis)
         for i, atom in enumerate(self._atom_list):
             self._atom_list[i].relative_position = atom.cartesian_position.dot(inverse_basis)
+
+    def warp_at_periodic_boundaries(self) -> None:
+        for i, atom in enumerate(self._atom_list):
+            relative_position = atom.relative_position
+            relative_position -= np.floor(relative_position)
+            self._atom_list[i].relative_position = relative_position
+        self.convert_relative_to_cartesian()
 
     def clear_neighbors(self) -> None:
         for atom in self._atom_list:
@@ -173,7 +180,7 @@ def read_config(filename: str, update_neighbors: bool = True) -> Config:
         id_count += 1
 
     config = Config(basis, atom_list)
-    config.convert_relative_to_cartesian()
+    config.warp_at_periodic_boundaries()
     logging.debug(f"Found neighbors {neighbor_found}")
     if (not neighbor_found) and update_neighbors:
         logging.debug(f"Finding neighbors")
@@ -240,6 +247,7 @@ def read_poscar(filename: str, update_neighbors: bool = True) -> Config:
         config.convert_relative_to_cartesian()
     else:
         config.convert_cartesian_to_relative()
+    config.warp_at_periodic_boundaries()
 
     if update_neighbors:
         logging.debug(f"Finding neighbors")

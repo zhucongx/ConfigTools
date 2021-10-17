@@ -51,7 +51,7 @@ class TestVec(unittest.TestCase):
     def test_one_hot_encode(self):
         config = read_config("test_files/test.cfg")
         cluster_mapping = get_average_cluster_parameters_mapping(config)
-        forward, backward = get_one_hot_encoding_list_forward_and_backward_from_map(
+        forward, backward = get_one_hot_encoding_list_forward_and_backward_from_mapping(
             config, (18, 23), {"Al", "Mg", "Zn"}, cluster_mapping)
         self.assertEqual(len(forward), len(backward))
         self.assertEqual(len(forward), 21 * 3 + (115 - 21) * 9)
