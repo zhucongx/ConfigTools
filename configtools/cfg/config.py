@@ -1,6 +1,6 @@
-from .constants import *
-from .atom import Atom, get_average_relative_position_atom, get_relative_distance_vector
-from .atomic_mass import get_atomic_mass
+from configtools.cfg.constants import *
+from configtools.cfg.atom import Atom, get_average_relative_position_atom, get_relative_distance_vector
+from configtools.cfg.atomic_mass import get_atomic_mass
 from collections import OrderedDict
 import typing
 import logging

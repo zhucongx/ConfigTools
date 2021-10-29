@@ -1,4 +1,4 @@
-from ..cfg import *
+from configtools.cfg import *
 from collections import OrderedDict
 import bisect
 import copy

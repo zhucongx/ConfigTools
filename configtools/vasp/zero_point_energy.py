@@ -1,6 +1,6 @@
 import typing
 import numpy as np
-from .. import cfg
+import configtools.cfg as cfg
 
 
 def prepare_zpe_poscar(contcar_filename: str,

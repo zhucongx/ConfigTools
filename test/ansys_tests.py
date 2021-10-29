@@ -1,5 +1,5 @@
 import unittest
-from ansys.vac_jump import *
+from configtools.ansys.vac_jump import *
 
 
 class TestVec(unittest.TestCase):

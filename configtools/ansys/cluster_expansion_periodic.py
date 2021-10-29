@@ -245,8 +245,8 @@ def get_one_hot_encoding_list_from_mapping(
     return encode_list
 
 
-if __name__ == "__main__":
-    config11 = cfg.read_config("../test/test_files/test.cfg")
-    cl_mapping = get_average_cluster_parameters_mapping_periodic(config11)
-    ce = get_one_hot_encoding_list_from_mapping(config11, {"Al", "Mg", "Zn"}, cl_mapping)
-    print(len(ce))
+# if __name__ == "__main__":
+#     config11 = cfg.read_config("../test/test_files/test.cfg")
+#     cl_mapping = get_average_cluster_parameters_mapping_periodic(config11)
+#     ce = get_one_hot_encoding_list_from_mapping(config11, {"Al", "Mg", "Zn"}, cl_mapping)
+#     print(len(ce))

@@ -5,8 +5,8 @@ import logging
 from collections import OrderedDict
 import numpy as np
 
-from .. import cfg
-from .cluster import *
+from configtools import cfg
+from configtools.ansys.cluster import *
 
 K_EPSILON = 1e-8
 
@@ -14,7 +14,6 @@ K_EPSILON = 1e-8
 def _is_atom_smaller_symmetrically(lhs: Atom, rhs: Atom) -> bool:
     relative_position_lhs = lhs.relative_position
     relative_position_rhs = rhs.relative_position
-    # diff_x = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
     diff_norm = np.linalg.norm(relative_position_lhs - np.full((3,), 0.5)) - \
                 np.linalg.norm(relative_position_rhs - np.full((3,), 0.5))
     if diff_norm < - K_EPSILON:
@@ -22,6 +21,7 @@ def _is_atom_smaller_symmetrically(lhs: Atom, rhs: Atom) -> bool:
     if diff_norm > K_EPSILON:
         return False
     diff_x = relative_position_lhs[0] - relative_position_rhs[0]
+    # diff_x = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
     return diff_x < - K_EPSILON
 
 
@@ -257,7 +257,7 @@ def get_one_hot_encoding_list_forward_and_backward_from_mapping(
 
 
 if __name__ == "__main__":
-    config11 = cfg.read_config("../test/test_files/test.cfg")
+    config11 = cfg.read_config("../../test/test_files/test.cfg")
     cl_mapping = get_average_cluster_parameters_mapping_symmetry(config11)
     forward, backward = get_one_hot_encoding_list_forward_and_backward_from_mapping(
         config11, (18, 23), {"Al", "Mg", "Zn"}, cl_mapping)

@@ -1,4 +1,4 @@
-from ..cfg.config import Atom
+from configtools.cfg import Atom
 import copy
 import typing
 
