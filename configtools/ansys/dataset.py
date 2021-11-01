@@ -105,5 +105,5 @@ def build_pd_file(element_set, path, out_put_destination):
     df.to_pickle(out_put_destination)
 
 
-if __name__ == "__main__":
-    build_pd_file({"Al", "Mg", "Zn"}, "../../../all_data_neb_result/", "../../data/all_compiled_data_mm2.pkl")
+# if __name__ == "__main__":
+#     build_pd_file({"Al", "Mg", "Zn"}, "../../../all_data_neb_result/", "../../data/all_compiled_data_mm2.pkl")

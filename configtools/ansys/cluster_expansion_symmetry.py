@@ -256,15 +256,15 @@ def get_one_hot_encoding_list_forward_and_backward_from_mapping(
     return tuple(result)
 
 
-if __name__ == "__main__":
-    config11 = cfg.read_config("../../test/test_files/test.cfg")
-    cl_mapping = get_average_cluster_parameters_mapping_symmetry(config11)
-    forward, backward = get_one_hot_encoding_list_forward_and_backward_from_mapping(
-        config11, (18, 23), {"Al", "Mg", "Zn"}, cl_mapping)
-    print(len(forward))
-    cfg11 = get_symmetrically_sorted_config(config11, (18, 23))
-    for atom in cfg11.atom_list:
-        print((atom.relative_position - np.full((3,), 0.5)).tolist(),
-              np.linalg.norm(atom.relative_position[1:] - np.full((2,), 0.5)),
-              np.linalg.norm(atom.relative_position - np.full((3,), 0.5))
-              )
+# if __name__ == "__main__":
+#     config11 = cfg.read_config("../../test/test_files/test.cfg")
+#     cl_mapping = get_average_cluster_parameters_mapping_symmetry(config11)
+#     forward, backward = get_one_hot_encoding_list_forward_and_backward_from_mapping(
+#         config11, (18, 23), {"Al", "Mg", "Zn"}, cl_mapping)
+#     print(len(forward))
+#     cfg11 = get_symmetrically_sorted_config(config11, (18, 23))
+#     for atom in cfg11.atom_list:
+#         print((atom.relative_position - np.full((3,), 0.5)).tolist(),
+#               np.linalg.norm(atom.relative_position[1:] - np.full((2,), 0.5)),
+#               np.linalg.norm(atom.relative_position - np.full((3,), 0.5))
+#               )
