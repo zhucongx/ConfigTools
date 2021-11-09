@@ -126,9 +126,10 @@ def _get_symmetrically_sorted_atom_vectors(config: cfg.Config, jump_pair: typing
            _rotate_atom_vector_and_sort_helper(atom_list_backward, config, jump_pair[::-1])
 
 
-def get_symmetrically_sorted_config(config: cfg.Config, jump_pair: typing.Tuple[int, int]) -> cfg.Config:
-    sorted_vector = _get_symmetrically_sorted_atom_vectors(config, jump_pair)[0]
-    return cfg.Config(config.basis, sorted_vector)
+def get_symmetrically_sorted_configs(config: cfg.Config, jump_pair: typing.Tuple[int, int]) -> \
+        typing.Tuple[cfg.Config, cfg.Config]:
+    sorted_vectors = _get_symmetrically_sorted_atom_vectors(config, jump_pair)
+    return cfg.Config(config.basis, sorted_vectors[0]), cfg.Config(config.basis, sorted_vectors[1])
 
 
 def _get_average_parameters_mapping_from_cluster_vector_helper(
@@ -254,7 +255,6 @@ def get_one_hot_encoding_list_forward_and_backward_from_mapping(
             encode_list = encode_list + sum_of_list
         result.append(encode_list)
     return tuple(result)
-
 
 # if __name__ == "__main__":
 #     config11 = cfg.read_config("../../test/test_files/test.cfg")
