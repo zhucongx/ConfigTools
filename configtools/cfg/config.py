@@ -51,6 +51,12 @@ class Config(object):
         for i, atom in enumerate(self._atom_list):
             self._atom_list[i].relative_position = atom.cartesian_position.dot(inverse_basis)
 
+    def perturb(self) -> None:
+        inverse_basis = np.linalg.inv(self._basis)
+        for i, atom in enumerate(self._atom_list):
+            self._atom_list[i].relative_position = (atom.cartesian_position + np.random.normal(0, 0.1, 3)).dot(
+                inverse_basis)
+
     def warp_at_periodic_boundaries(self) -> None:
         for i, atom in enumerate(self._atom_list):
             relative_position = atom.relative_position
