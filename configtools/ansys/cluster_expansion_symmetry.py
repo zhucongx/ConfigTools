@@ -20,8 +20,8 @@ def _is_atom_smaller_symmetrically(lhs: Atom, rhs: Atom) -> bool:
         return True
     if diff_norm > K_EPSILON:
         return False
-    diff_x = relative_position_lhs[0] - relative_position_rhs[0]
-    # diff_x = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
+    # diff_x = relative_position_lhs[0] - relative_position_rhs[0]
+    diff_x = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
     return diff_x < - K_EPSILON
 
 
