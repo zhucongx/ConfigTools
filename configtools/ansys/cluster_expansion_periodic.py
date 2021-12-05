@@ -85,8 +85,11 @@ def _get_sorted_atom_vector(config: cfg.Config) -> typing.List[Atom]:
     atom_id_set = cfg.get_first_second_third_neighbors_set_of_atom(config, cfg.get_vacancy_index(config))
     move_distance = np.full((3,), 0.5)-config.atom_list[cfg.get_vacancy_index(config)].relative_position
     atom_list: typing.List[Atom] = list()
-    for atom_id in atom_id_set:
+    # for atom_id in atom_id_set:
+    for atom_id in range(config.number_atoms):
         atom = copy.deepcopy(config.atom_list[atom_id])
+        if atom.elem_type == "X":
+            continue
         atom.clean_neighbors_lists()
         relative_position = atom.relative_position
         relative_position += move_distance
@@ -123,6 +126,8 @@ def get_average_cluster_parameters_mapping_periodic(config: cfg.Config) -> typin
     # singlets
     singlet_vector: typing.List[Cluster] = list()
     for atom in atom_list:
+        if atom.elem_type == "X":
+            continue
         singlet_vector.append(Cluster(atom))
     _get_average_parameters_mapping_from_cluster_vector_helper(singlet_vector, cluster_mapping)
     print(len(cluster_mapping[-1]))
@@ -133,14 +138,22 @@ def get_average_cluster_parameters_mapping_periodic(config: cfg.Config) -> typin
     third_pair_set: typing.Set[Cluster] = set()
 
     for atom1 in atom_list:
+        if atom1.elem_type == "X":
+            continue
         for atom2_index in atom1.first_nearest_neighbor_list:
             atom2 = atom_list[atom2_index]
+            if atom2.elem_type == "X":
+                continue
             first_pair_set.add(Cluster(atom1, atom2))
         for atom2_index in atom1.second_nearest_neighbor_list:
             atom2 = atom_list[atom2_index]
+            if atom2.elem_type == "X":
+                continue
             second_pair_set.add(Cluster(atom1, atom2))
         for atom2_index in atom1.third_nearest_neighbor_list:
             atom2 = atom_list[atom2_index]
+            if atom2.elem_type == "X":
+                continue
             third_pair_set.add(Cluster(atom1, atom2))
     _get_average_parameters_mapping_from_cluster_vector_helper(list(first_pair_set), cluster_mapping)
     print(len(cluster_mapping[-1]))
@@ -171,10 +184,16 @@ def get_average_cluster_parameters_mapping_periodic(config: cfg.Config) -> typin
     # 3-3-3
     third_third_third_triplets_set: typing.Set[Cluster] = set()
     for atom1 in atom_list:
+        if atom1.elem_type == "X":
+            continue
         for atom2_index in atom1.first_nearest_neighbor_list:
             atom2 = atom_list[atom2_index]
+            if atom2.elem_type == "X":
+                continue
             for atom3_index in atom2.first_nearest_neighbor_list:
                 atom3 = atom_list[atom3_index]
+                if atom3.elem_type == "X":
+                    continue
                 if atom3_index in atom1.first_nearest_neighbor_list:
                     first_first_first_triplets_set.add(Cluster(atom1, atom2, atom3))
                 if atom3_index in atom1.second_nearest_neighbor_list:
@@ -183,22 +202,34 @@ def get_average_cluster_parameters_mapping_periodic(config: cfg.Config) -> typin
                     first_first_third_triplets_set.add(Cluster(atom1, atom2, atom3))
             for atom3_index in atom2.second_nearest_neighbor_list:
                 atom3 = atom_list[atom3_index]
+                if atom3.elem_type == "X":
+                    continue
                 if atom3_index in atom1.third_nearest_neighbor_list:
                     first_second_third_triplets_set.add(Cluster(atom1, atom2, atom3))
             for atom3_index in atom2.third_nearest_neighbor_list:
                 atom3 = atom_list[atom3_index]
+                if atom3.elem_type == "X":
+                    continue
                 if atom3_index in atom1.third_nearest_neighbor_list:
                     first_third_third_triplets_set.add(Cluster(atom1, atom2, atom3))
         for atom2_index in atom1.second_nearest_neighbor_list:
             atom2 = atom_list[atom2_index]
+            if atom2.elem_type == "X":
+                continue
             for atom3_index in atom2.third_nearest_neighbor_list:
                 atom3 = atom_list[atom3_index]
+                if atom3.elem_type == "X":
+                    continue
                 if atom3_index in atom1.third_nearest_neighbor_list:
                     second_third_third_triplets_set.add(Cluster(atom1, atom2, atom3))
         for atom2_index in atom1.third_nearest_neighbor_list:
             atom2 = atom_list[atom2_index]
+            if atom2.elem_type == "X":
+                continue
             for atom3_index in atom2.third_nearest_neighbor_list:
                 atom3 = atom_list[atom3_index]
+                if atom3.elem_type == "X":
+                    continue
                 if atom3_index in atom1.third_nearest_neighbor_list:
                     third_third_third_triplets_set.add(Cluster(atom1, atom2, atom3))
     _get_average_parameters_mapping_from_cluster_vector_helper(list(first_first_first_triplets_set), cluster_mapping)
