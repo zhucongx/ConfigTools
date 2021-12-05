@@ -28,6 +28,9 @@ class Cluster(object):
                         np.linalg.norm(relative_position_rhs - np.full((3,), 0.5))
             if diff_norm < - K_EPSILON:
                 return True
+            if diff_norm > K_EPSILON:
+                return False
+            return lhs.atom_id < rhs.atom_id
 
         Atom.__lt__ = lambda this, other: _position_sort(this, other)
         self._atom_list.sort()
@@ -80,7 +83,7 @@ def _is_cluster_smaller_symmetrically(lhs: Cluster, rhs: Cluster) -> bool:
 
 def _get_sorted_atom_vector(config: cfg.Config) -> typing.List[Atom]:
     atom_id_set = cfg.get_first_second_third_neighbors_set_of_atom(config, cfg.get_vacancy_index(config))
-    move_distance = -config.atom_list[cfg.get_vacancy_index(config)].relative_position
+    move_distance = np.full((3,), 0.5)-config.atom_list[cfg.get_vacancy_index(config)].relative_position
     atom_list: typing.List[Atom] = list()
     for atom_id in atom_id_set:
         atom = copy.deepcopy(config.atom_list[atom_id])
