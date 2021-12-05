@@ -20,8 +20,8 @@ def _is_atom_smaller_symmetrically(lhs: Atom, rhs: Atom) -> bool:
         return True
     if diff_norm > K_EPSILON:
         return False
-    # diff_x = relative_position_lhs[0] - relative_position_rhs[0]
-    diff_x = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
+    diff_x = relative_position_lhs[0] - relative_position_rhs[0]
+    # diff_x = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
     return diff_x < - K_EPSILON
 
 
@@ -72,7 +72,7 @@ def _rotate_atom_vector_and_sort_helper(atom_list: typing.List[Atom], reference_
     cfg.rotate_atom_vector(atom_list, cfg.get_pair_rotation_matrix(reference_config, jump_pair))
     logging.debug(f"Init: {[atom.atom_id for atom in atom_list]}")
 
-    Atom.__lt__ = lambda self, other: _atom_sort(self, other)
+    Atom.__lt__ = lambda self, other: _is_atom_smaller_symmetrically(self, other)
     atom_list.sort()
     logging.debug(f"Finial: {[atom.atom_id for atom in atom_list]}")
 
@@ -181,24 +181,22 @@ def get_average_cluster_parameters_mapping_symmetry(config: cfg.Config) -> typin
     for atom in atom_vector:
         singlet_vector.append(Cluster(atom))
     _get_average_parameters_mapping_from_cluster_vector_helper(singlet_vector, cluster_mapping)
-    # first nearest pairs
+    # pairs
     first_pair_set: typing.Set[Cluster] = set()
+    second_pair_set: typing.Set[Cluster] = set()
+    third_pair_set: typing.Set[Cluster] = set()
     for atom1 in atom_vector:
         for atom2_index in atom1.first_nearest_neighbor_list:
             first_pair_set.add(Cluster(atom1, atom_vector[atom2_index]))
-    _get_average_parameters_mapping_from_cluster_vector_helper(list(first_pair_set), cluster_mapping)
-    # second nearest pairs
-    second_pair_set: typing.Set[Cluster] = set()
-    for atom1 in atom_vector:
         for atom2_index in atom1.second_nearest_neighbor_list:
             second_pair_set.add(Cluster(atom1, atom_vector[atom2_index]))
-    _get_average_parameters_mapping_from_cluster_vector_helper(list(second_pair_set), cluster_mapping)
-    # third nearest pairs
-    third_pair_set: typing.Set[Cluster] = set()
-    for atom1 in atom_vector:
         for atom2_index in atom1.third_nearest_neighbor_list:
             third_pair_set.add(Cluster(atom1, atom_vector[atom2_index]))
+
+    _get_average_parameters_mapping_from_cluster_vector_helper(list(first_pair_set), cluster_mapping)
+    _get_average_parameters_mapping_from_cluster_vector_helper(list(second_pair_set), cluster_mapping)
     _get_average_parameters_mapping_from_cluster_vector_helper(list(third_pair_set), cluster_mapping)
+
     # first nearest triplets
     triplets_set: typing.Set[Cluster] = set()
     for atom1 in atom_vector:
@@ -208,11 +206,12 @@ def get_average_cluster_parameters_mapping_symmetry(config: cfg.Config) -> typin
                 if atom3_index in atom1.first_nearest_neighbor_list:
                     triplets_set.add(Cluster(atom1, atom2, atom_vector[atom3_index]))
     _get_average_parameters_mapping_from_cluster_vector_helper(list(triplets_set), cluster_mapping)
+
     return cluster_mapping
 
 
 # def get_average_cluster_parameters_forward_and_backward_from_map(
-#         config: Config, jump_pair: typing.Tuple[int, int],
+#         config: cfg.Config, jump_pair: typing.Tuple[int, int],
 #         type_category_map: typing.Dict[str, float],
 #         cluster_mapping: typing.List[typing.List[typing.List[int]]]) -> \
 #         typing.Tuple[typing.List[float], typing.List[float]]:
@@ -256,15 +255,14 @@ def get_one_hot_encoding_list_forward_and_backward_from_mapping(
         result.append(encode_list)
     return tuple(result)
 
+
 # if __name__ == "__main__":
 #     config11 = cfg.read_config("../../test/test_files/test.cfg")
 #     cl_mapping = get_average_cluster_parameters_mapping_symmetry(config11)
 #     forward, backward = get_one_hot_encoding_list_forward_and_backward_from_mapping(
 #         config11, (18, 23), {"Al", "Mg", "Zn"}, cl_mapping)
 #     print(len(forward))
-#     cfg11 = get_symmetrically_sorted_config(config11, (18, 23))
-#     for atom in cfg11.atom_list:
-#         print((atom.relative_position - np.full((3,), 0.5)).tolist(),
-#               np.linalg.norm(atom.relative_position[1:] - np.full((2,), 0.5)),
-#               np.linalg.norm(atom.relative_position - np.full((3,), 0.5))
-#               )
+    # cfg11 = get_symmetrically_sorted_configs(config11, (18, 23))
+    # for atom in cfg11[0].atom_list:
+    #     print((np.linalg.norm(atom.relative_position[1:] - np.full((2,), 0.5)),
+    #           np.linalg.norm(atom.relative_position - np.full((3,), 0.5))))

@@ -5,8 +5,8 @@ import logging
 from collections import OrderedDict
 import numpy as np
 
-from .. import cfg
-from .cluster import *
+from configtools import cfg
+from configtools.ansys.cluster import *
 
 K_EPSILON = 1e-8
 
@@ -82,8 +82,9 @@ def get_average_cluster_parameters_mapping_periodic(config: cfg.Config) -> typin
             continue
         singlet_vector.append(Cluster(atom))
     _get_average_parameters_mapping_from_cluster_vector_helper(singlet_vector, cluster_mapping)
+    print(len(cluster_mapping[-1]))
 
-    # first nearest pairs
+    # pairs
     first_pair_set: typing.Set[Cluster] = set()
     second_pair_set: typing.Set[Cluster] = set()
     third_pair_set: typing.Set[Cluster] = set()
@@ -107,8 +108,11 @@ def get_average_cluster_parameters_mapping_periodic(config: cfg.Config) -> typin
                 continue
             third_pair_set.add(Cluster(atom1, atom2))
     _get_average_parameters_mapping_from_cluster_vector_helper(list(first_pair_set), cluster_mapping)
+    print(len(cluster_mapping[-1]))
     _get_average_parameters_mapping_from_cluster_vector_helper(list(second_pair_set), cluster_mapping)
+    print(len(cluster_mapping[-1]))
     _get_average_parameters_mapping_from_cluster_vector_helper(list(third_pair_set), cluster_mapping)
+    print(len(cluster_mapping[-1]))
 
     # triplets
     # 1-1-1
@@ -181,12 +185,19 @@ def get_average_cluster_parameters_mapping_periodic(config: cfg.Config) -> typin
                 if atom3_index in atom1.third_nearest_neighbor_list:
                     third_third_third_triplets_set.add(Cluster(atom1, atom2, atom3))
     _get_average_parameters_mapping_from_cluster_vector_helper(list(first_first_first_triplets_set), cluster_mapping)
+    print(len(cluster_mapping[-1]))
     _get_average_parameters_mapping_from_cluster_vector_helper(list(first_first_second_triplets_set), cluster_mapping)
+    print(len(cluster_mapping[-1]))
     _get_average_parameters_mapping_from_cluster_vector_helper(list(first_first_third_triplets_set), cluster_mapping)
+    print(len(cluster_mapping[-1]))
     _get_average_parameters_mapping_from_cluster_vector_helper(list(first_second_third_triplets_set), cluster_mapping)
+    print(len(cluster_mapping[-1]))
     _get_average_parameters_mapping_from_cluster_vector_helper(list(first_third_third_triplets_set), cluster_mapping)
+    print(len(cluster_mapping[-1]))
     _get_average_parameters_mapping_from_cluster_vector_helper(list(second_third_third_triplets_set), cluster_mapping)
+    print(len(cluster_mapping[-1]))
     _get_average_parameters_mapping_from_cluster_vector_helper(list(third_third_third_triplets_set), cluster_mapping)
+    print(len(cluster_mapping[-1]))
 
     # # quadruplets
     # first_kind_quadruplets_set: typing.Set[Cluster] = set()
@@ -245,8 +256,9 @@ def get_one_hot_encoding_list_from_mapping(
     return encode_list
 
 
-# if __name__ == "__main__":
-#     config11 = cfg.read_config("../test/test_files/test.cfg")
-#     cl_mapping = get_average_cluster_parameters_mapping_periodic(config11)
-#     ce = get_one_hot_encoding_list_from_mapping(config11, {"Al", "Mg", "Zn"}, cl_mapping)
-#     print(len(ce))
+if __name__ == "__main__":
+    config11 = cfg.read_config("../../test/test_files/test.cfg")
+    cl_mapping = get_average_cluster_parameters_mapping_periodic(config11)
+    print(len(cl_mapping))
+    ce = get_one_hot_encoding_list_from_mapping(config11, {"Al", "Mg", "Zn"}, cl_mapping)
+    print(ce)

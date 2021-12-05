@@ -1,6 +1,9 @@
 from configtools.cfg import Atom
 import copy
 import typing
+import numpy as np
+
+K_EPSILON = 1e-8
 
 
 class Cluster(object):
@@ -11,7 +14,32 @@ class Cluster(object):
                 print("type X..!!!")
             self._atom_list.append(copy.deepcopy(insert_atom))
 
-        self._atom_list.sort(key=lambda sort_atom: sort_atom.atom_id)
+        # self._atom_list.sort(key=lambda sort_atom: sort_atom.relative_position.tolist())
+        def _position_sort(lhs: Atom, rhs: Atom) -> bool:
+            relative_position_lhs = lhs.relative_position
+            relative_position_rhs = rhs.relative_position
+            # diff_norm = np.linalg.norm(relative_position_lhs - np.full((3,), 0.5)) - \
+            #             np.linalg.norm(relative_position_rhs - np.full((3,), 0.5))
+            # if diff_norm < - K_EPSILON:
+            #     return True
+            # if diff_norm > K_EPSILON:
+            #     return False
+            diff_x = relative_position_lhs[0] - relative_position_rhs[0]
+            diff_y = relative_position_lhs[1] - relative_position_rhs[1]
+            diff_z = relative_position_lhs[1] - relative_position_rhs[1]
+            # diff_x = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
+            if diff_x < - K_EPSILON:
+                return True
+            if diff_x > K_EPSILON:
+                return False
+            if diff_y < - K_EPSILON:
+                return True
+            if diff_y > K_EPSILON:
+                return False
+            return diff_z < -K_EPSILON
+
+        Atom.__lt__ = lambda this, other: _position_sort(this, other)
+        self._atom_list.sort()
 
     def __eq__(self, other):
         for atom1, atom2 in zip(self.atom_list, other.atom_list):

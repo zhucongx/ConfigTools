@@ -77,43 +77,30 @@ class Config(object):
                 element_list_map[atom.elem_type] = [atom.atom_id]
         return OrderedDict(sorted(element_list_map.items(), key=lambda it: it[0]))
 
-    def update_neighbors(self, first_r_cutoff: float = FIRST_NEAREST_NEIGHBORS_CUTOFF,
-                         second_r_cutoff: float = SECOND_NEAREST_NEIGHBORS_CUTOFF,
-                         third_r_cutoff: float = THIRD_NEAREST_NEIGHBORS_CUTOFF,
-                         fourth_r_cutoff: float = FOURTH_NEAREST_NEIGHBORS_CUTOFF,
-                         fifth_r_cutoff: float = FIFTH_NEAREST_NEIGHBORS_CUTOFF,
-                         sixth_r_cutoff: float = SIXTH_NEAREST_NEIGHBORS_CUTOFF,
-                         seventh_r_cutoff: float = SEVENTH_NEAREST_NEIGHBORS_CUTOFF) -> None:
-        first_r_cutoff_square = first_r_cutoff ** 2
-        second_r_cutoff_square = second_r_cutoff ** 2
-        third_r_cutoff_square = third_r_cutoff ** 2
-        fourth_r_cutoff_square = fourth_r_cutoff ** 2
-        fifth_r_cutoff_square = fifth_r_cutoff ** 2
-        sixth_r_cutoff_square = sixth_r_cutoff ** 2
-        seventh_r_cutoff_square = seventh_r_cutoff ** 2
+    def update_neighbors(self) -> None:
         for i in range(self.number_atoms):
             for j in range(i):
                 relative_distance_vector = get_relative_distance_vector(self._atom_list[i],
                                                                         self._atom_list[j])
                 absolute_distance_vector = relative_distance_vector.dot(self._basis)
 
-                if abs(absolute_distance_vector[0]) > sixth_r_cutoff:
+                if abs(absolute_distance_vector[0]) > SEVENTH_NEAREST_NEIGHBORS_CUTOFF:
                     continue
-                if abs(absolute_distance_vector[1]) > sixth_r_cutoff:
+                if abs(absolute_distance_vector[1]) > SEVENTH_NEAREST_NEIGHBORS_CUTOFF:
                     continue
-                if abs(absolute_distance_vector[2]) > sixth_r_cutoff:
+                if abs(absolute_distance_vector[2]) > SEVENTH_NEAREST_NEIGHBORS_CUTOFF:
                     continue
                 absolute_distance_square = np.inner(absolute_distance_vector, absolute_distance_vector)
-                if absolute_distance_square <= seventh_r_cutoff_square:
-                    if absolute_distance_square <= sixth_r_cutoff_square:
-                        if absolute_distance_square <= fifth_r_cutoff_square:
-                            if absolute_distance_square <= fourth_r_cutoff_square:
-                                if absolute_distance_square <= third_r_cutoff_square:
-                                    if absolute_distance_square <= second_r_cutoff_square:
-                                        if absolute_distance_square <= first_r_cutoff_square:
+                if absolute_distance_square <= SEVENTH_NEAREST_NEIGHBORS_CUTOFF ** 2:
+                    if absolute_distance_square <= SIXTH_NEAREST_NEIGHBORS_CUTOFF ** 2:
+                        if absolute_distance_square <= FIFTH_NEAREST_NEIGHBORS_CUTOFF ** 2:
+                            if absolute_distance_square <= FOURTH_NEAREST_NEIGHBORS_CUTOFF ** 2:
+                                if absolute_distance_square <= THIRD_NEAREST_NEIGHBORS_CUTOFF ** 2:
+                                    if absolute_distance_square <= SECOND_NEAREST_NEIGHBORS_CUTOFF_U ** 2:
+                                        if absolute_distance_square <= FIRST_NEAREST_NEIGHBORS_CUTOFF ** 2:
                                             self._atom_list[i].append_first_nearest_neighbor_list(j)
                                             self._atom_list[j].append_first_nearest_neighbor_list(i)
-                                        else:
+                                        elif absolute_distance_square <= SECOND_NEAREST_NEIGHBORS_CUTOFF_L ** 2:
                                             self._atom_list[i].append_second_nearest_neighbor_list(j)
                                             self._atom_list[j].append_second_nearest_neighbor_list(i)
                                     else:
