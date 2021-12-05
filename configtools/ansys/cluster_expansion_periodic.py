@@ -102,10 +102,14 @@ def _is_cluster_smaller_symmetrically(lhs: Cluster, rhs: Cluster) -> bool:
     return False
 
 
-def _get_sorted_atom_vector(config: cfg.Config) -> typing.List[Atom]:
-    # atom_id_set = cfg.get_first_second_third_neighbors_set_of_atom(config, cfg.get_vacancy_index(config))
-    move_distance = np.full((3,), 0.5) - config.atom_list[cfg.get_vacancy_index(config)].relative_position
-    atom_list: typing.List[Atom] = list()
+def _get_symmetrically_sorted_atom_vectors(config: cfg.Config, jump_pair: typing.Tuple[int, int]) -> \
+        typing.Tuple[typing.List[Atom], typing.List[Atom]]:
+    atom_id_set = cfg.get_first_second_third_neighbors_set_of_jump_pair(config, jump_pair)
+    move_distance = np.full((3,), 0.5) - cfg.get_pair_center(config, jump_pair)
+    atom_list_forward: typing.List[Atom] = list()
+    vacancy_relative_position = np.zeros(3)
+    vacancy_cartesian_position = np.zeros(3)
+
     # for atom_id in atom_id_set:
     for atom_id in range(config.number_atoms):
         atom = copy.deepcopy(config.atom_list[atom_id])
@@ -114,14 +118,30 @@ def _get_sorted_atom_vector(config: cfg.Config) -> typing.List[Atom]:
         relative_position += move_distance
         relative_position -= np.floor(relative_position)
         atom.relative_position = relative_position
-        atom_list.append(atom)
+        if atom.atom_id == jump_pair[0]:
+            vacancy_cartesian_position = atom.cartesian_position
+            vacancy_relative_position = atom.relative_position
+            continue
+        atom_list_forward.append(atom)
+    atom_list_backward = copy.deepcopy(atom_list_forward)
+    for i, atom in enumerate(atom_list_backward):
+        if atom.atom_id == jump_pair[1]:
+            atom_list_backward[i].relative_position = vacancy_relative_position
+            atom_list_backward[i].cartesian_position = vacancy_cartesian_position
+
     Atom.__lt__ = lambda self, other: _is_atom_smaller(self, other)
-    atom_list.sort()
-    for i, atom in enumerate(atom_list):
-        atom_list[i].atom_id = i
-    out_config = cfg.Config(config.basis, atom_list)
-    out_config.update_neighbors()
-    return out_config.atom_list
+    atom_list_forward.sort()
+    atom_list_backward.sort()
+    for i, atom in enumerate(atom_list_forward):
+        atom_list_forward[i].atom_id = i
+    out_config_forward = cfg.Config(config.basis, atom_list_forward)
+    out_config_forward.update_neighbors()
+
+    for i, atom in enumerate(atom_list_backward):
+        atom_list_backward[i].atom_id = i
+    out_config_backward = cfg.Config(config.basis, atom_list_backward)
+    out_config_backward.update_neighbors()
+    return out_config_forward.atom_list, out_config_backward.atom_list
 
 
 def _get_average_parameters_mapping_from_cluster_vector_helper(
@@ -140,13 +160,14 @@ def _get_average_parameters_mapping_from_cluster_vector_helper(
 
 
 def get_average_cluster_parameters_mapping_periodic(config: cfg.Config) -> typing.List[typing.List[typing.List[int]]]:
-    atom_list = _get_sorted_atom_vector(config)
+    vacancy_index = cfg.get_vacancy_index(config)
+    neighbor_index = config.atom_list[vacancy_index].first_nearest_neighbor_list[0]
+    atom_list = _get_symmetrically_sorted_atom_vectors(config, (vacancy_index, neighbor_index))[0]
+
     cluster_mapping: typing.List[typing.List[typing.List[int]]] = list()
     # singlets
     singlet_vector: typing.List[Cluster] = list()
     for atom in atom_list:
-        if atom.elem_type == "X":
-            continue
         singlet_vector.append(Cluster(atom))
     _get_average_parameters_mapping_from_cluster_vector_helper(singlet_vector, cluster_mapping)
 
@@ -156,22 +177,14 @@ def get_average_cluster_parameters_mapping_periodic(config: cfg.Config) -> typin
     third_pair_set: typing.Set[Cluster] = set()
 
     for atom1 in atom_list:
-        if atom1.elem_type == "X":
-            continue
         for atom2_index in atom1.first_nearest_neighbor_list:
             atom2 = atom_list[atom2_index]
-            if atom2.elem_type == "X":
-                continue
             first_pair_set.add(Cluster(atom1, atom2))
         for atom2_index in atom1.second_nearest_neighbor_list:
             atom2 = atom_list[atom2_index]
-            if atom2.elem_type == "X":
-                continue
             second_pair_set.add(Cluster(atom1, atom2))
         for atom2_index in atom1.third_nearest_neighbor_list:
             atom2 = atom_list[atom2_index]
-            if atom2.elem_type == "X":
-                continue
             third_pair_set.add(Cluster(atom1, atom2))
     _get_average_parameters_mapping_from_cluster_vector_helper(list(first_pair_set), cluster_mapping)
     _get_average_parameters_mapping_from_cluster_vector_helper(list(second_pair_set), cluster_mapping)
@@ -199,16 +212,10 @@ def get_average_cluster_parameters_mapping_periodic(config: cfg.Config) -> typin
     # 3-3-3
     third_third_third_triplets_set: typing.Set[Cluster] = set()
     for atom1 in atom_list:
-        if atom1.elem_type == "X":
-            continue
         for atom2_index in atom1.first_nearest_neighbor_list:
             atom2 = atom_list[atom2_index]
-            if atom2.elem_type == "X":
-                continue
             for atom3_index in atom2.first_nearest_neighbor_list:
                 atom3 = atom_list[atom3_index]
-                if atom3.elem_type == "X":
-                    continue
                 if atom3_index in atom1.first_nearest_neighbor_list:
                     first_first_first_triplets_set.add(Cluster(atom1, atom2, atom3))
                 if atom3_index in atom1.second_nearest_neighbor_list:
@@ -217,34 +224,22 @@ def get_average_cluster_parameters_mapping_periodic(config: cfg.Config) -> typin
                     first_first_third_triplets_set.add(Cluster(atom1, atom2, atom3))
             for atom3_index in atom2.second_nearest_neighbor_list:
                 atom3 = atom_list[atom3_index]
-                if atom3.elem_type == "X":
-                    continue
                 if atom3_index in atom1.third_nearest_neighbor_list:
                     first_second_third_triplets_set.add(Cluster(atom1, atom2, atom3))
             for atom3_index in atom2.third_nearest_neighbor_list:
                 atom3 = atom_list[atom3_index]
-                if atom3.elem_type == "X":
-                    continue
                 if atom3_index in atom1.third_nearest_neighbor_list:
                     first_third_third_triplets_set.add(Cluster(atom1, atom2, atom3))
         for atom2_index in atom1.second_nearest_neighbor_list:
             atom2 = atom_list[atom2_index]
-            if atom2.elem_type == "X":
-                continue
             for atom3_index in atom2.third_nearest_neighbor_list:
                 atom3 = atom_list[atom3_index]
-                if atom3.elem_type == "X":
-                    continue
                 if atom3_index in atom1.third_nearest_neighbor_list:
                     second_third_third_triplets_set.add(Cluster(atom1, atom2, atom3))
         for atom2_index in atom1.third_nearest_neighbor_list:
             atom2 = atom_list[atom2_index]
-            if atom2.elem_type == "X":
-                continue
             for atom3_index in atom2.third_nearest_neighbor_list:
                 atom3 = atom_list[atom3_index]
-                if atom3.elem_type == "X":
-                    continue
                 if atom3_index in atom1.third_nearest_neighbor_list:
                     third_third_third_triplets_set.add(Cluster(atom1, atom2, atom3))
     _get_average_parameters_mapping_from_cluster_vector_helper(list(first_first_first_triplets_set), cluster_mapping)
@@ -292,39 +287,51 @@ def get_average_cluster_parameters_mapping_periodic(config: cfg.Config) -> typin
     return cluster_mapping
 
 
-def get_one_hot_encoding_list_from_mapping(
+def get_one_hot_encoding_list_forward_and_backward_from_mapping(
         config: cfg.Config,
+        jump_pair: typing.Tuple[int, int],
         type_set: typing.Set[str],
         cluster_mapping: typing.List[typing.List[typing.List[int]]]) -> \
-        typing.List[float]:
+        typing.Tuple[typing.List[float], typing.List[float]]:
     one_hot_encode_dict = generate_one_hot_encode_dict_for_type(type_set)
-    atom_vector = _get_sorted_atom_vector(config)
-    encode_list: typing.List[float] = list()
-    for cluster_vector in cluster_mapping:
-        sum_of_list = [0.0] * (len(type_set) ** len(cluster_vector[0]))
-        for cluster in cluster_vector:
-            cluster_type_key = ""
-            for atom_index in cluster:
-                cluster_type_key += atom_vector[atom_index].elem_type
-            element_wise_add_second_to_first(sum_of_list, one_hot_encode_dict[cluster_type_key])
-        element_wise_divide_float_from_list(sum_of_list, float(len(cluster_vector)))
-        encode_list = encode_list + sum_of_list
-    return encode_list
+    result: typing.List[typing.List[float]] = list()
+    atom_vectors = _get_symmetrically_sorted_atom_vectors(config, jump_pair)
+    for atom_vector in atom_vectors:
+        encode_list: typing.List[float] = list()
+        for cluster_vector in cluster_mapping:
+            sum_of_list = [0.0] * (len(type_set) ** len(cluster_vector[0]))
+            for cluster in cluster_vector:
+                cluster_type_key = ""
+                for atom_index in cluster:
+                    cluster_type_key += atom_vector[atom_index].elem_type
+                element_wise_add_second_to_first(sum_of_list, one_hot_encode_dict[cluster_type_key])
+            element_wise_divide_float_from_list(sum_of_list, float(len(cluster_vector)))
+            encode_list = encode_list + sum_of_list
+        result.append(encode_list)
+    return tuple(result)
 
 
 if __name__ == "__main__":
     configs = cfg.read_config("../../test/test_files/forward.cfg")
     cl_mapping = get_average_cluster_parameters_mapping_periodic(configs)
-    confige = cfg.read_config("../../test/test_files/forward.cfg")
-    print(len(cl_mapping))
+    confige = cfg.read_config("../../test/test_files/backward.cfg")
 
-    ces = get_one_hot_encoding_list_from_mapping(configs, {"Al", "Mg", "Zn"}, cl_mapping)
-    cee = get_one_hot_encoding_list_from_mapping(confige, {"Al", "Mg", "Zn"}, cl_mapping)
+    ces = get_one_hot_encoding_list_forward_and_backward_from_mapping(configs, (18, 23),
+                                                                      {"Al", "Mg", "Zn"}, cl_mapping)
+    cee = get_one_hot_encoding_list_forward_and_backward_from_mapping(confige, (18, 23),
+                                                                      {"Al", "Mg", "Zn"}, cl_mapping)
     bond_change_forward = []
     bond_change_backward = []
-    for x, y in zip(ces, cee):
+    for x, y in zip(ces[0], ces[1]):
         bond_change_forward.append(y - x)
         bond_change_backward.append(x - y)
+    print(bond_change_forward)
+    print(bond_change_backward)
 
+    bond_change_forward = []
+    bond_change_backward = []
+    for x, y in zip(cee[0], cee[1]):
+        bond_change_forward.append(y - x)
+        bond_change_backward.append(x - y)
     print(bond_change_forward)
     print(bond_change_backward)
