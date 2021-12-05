@@ -11,20 +11,61 @@ from configtools.ansys.cluster import *
 K_EPSILON = 1e-8
 
 
+class Cluster(object):
+    def __init__(self, *atoms: Atom):
+        self._atom_list: typing.List[Atom] = list()
+        for insert_atom in atoms:
+            if insert_atom.elem_type == "X":
+                print("type X..!!!")
+            self._atom_list.append(copy.deepcopy(insert_atom))
+
+        # self._atom_list.sort(key=lambda sort_atom: sort_atom.relative_position.tolist())
+        def _position_sort(lhs: Atom, rhs: Atom) -> bool:
+            relative_position_lhs = lhs.relative_position
+            relative_position_rhs = rhs.relative_position
+
+            diff_norm = np.linalg.norm(relative_position_lhs - np.full((3,), 0.5)) - \
+                        np.linalg.norm(relative_position_rhs - np.full((3,), 0.5))
+            if diff_norm < - K_EPSILON:
+                return True
+
+        Atom.__lt__ = lambda this, other: _position_sort(this, other)
+        self._atom_list.sort()
+
+    def __eq__(self, other):
+        for atom1, atom2 in zip(self.atom_list, other.atom_list):
+            if atom1.atom_id != atom2.atom_id:
+                return False
+        return True
+
+    def __hash__(self):
+        atom_id_list = [atom.atom_id for atom in self._atom_list]
+        the_hash = hash(tuple(atom_id_list))
+        return the_hash
+
+    @property
+    def atom_list(self) -> typing.List[Atom]:
+        return self._atom_list
+
+    @property
+    def type_key(self) -> str:
+        key = ""
+        for atom in self._atom_list:
+            key += atom.elem_type
+        return key
+
+    @property
+    def size(self) -> int:
+        return len(self._atom_list)
+
+
 def _is_atom_smaller(lhs: Atom, rhs: Atom) -> bool:
     relative_position_lhs = lhs.relative_position
     relative_position_rhs = rhs.relative_position
-    diff_x = relative_position_lhs[0] - relative_position_rhs[0]
-    if diff_x < - K_EPSILON:
+    diff_norm = np.linalg.norm(relative_position_lhs - np.full((3,), 0.5)) - \
+                np.linalg.norm(relative_position_rhs - np.full((3,), 0.5))
+    if diff_norm < - K_EPSILON:
         return True
-    if diff_x > K_EPSILON:
-        return False
-    diff_y = relative_position_lhs[1] - relative_position_rhs[1]
-    if diff_y < - K_EPSILON:
-        return True
-    if diff_y > K_EPSILON:
-        return False
-    return relative_position_lhs[2] < relative_position_rhs[2] - K_EPSILON
 
 
 def _is_cluster_smaller_symmetrically(lhs: Cluster, rhs: Cluster) -> bool:
@@ -261,4 +302,4 @@ if __name__ == "__main__":
     cl_mapping = get_average_cluster_parameters_mapping_periodic(config11)
     print(len(cl_mapping))
     ce = get_one_hot_encoding_list_from_mapping(config11, {"Al", "Mg", "Zn"}, cl_mapping)
-    print(ce)
+    print(len(ce))

@@ -11,6 +11,59 @@ from configtools.ansys.cluster import *
 K_EPSILON = 1e-8
 
 
+class Cluster(object):
+    def __init__(self, *atoms: Atom):
+        self._atom_list: typing.List[Atom] = list()
+        for insert_atom in atoms:
+            if insert_atom.elem_type == "X":
+                print("type X..!!!")
+            self._atom_list.append(copy.deepcopy(insert_atom))
+
+        # self._atom_list.sort(key=lambda sort_atom: sort_atom.relative_position.tolist())
+        def _position_sort(lhs: Atom, rhs: Atom) -> bool:
+            relative_position_lhs = lhs.relative_position
+            relative_position_rhs = rhs.relative_position
+            diff_norm = np.linalg.norm(relative_position_lhs - np.full((3,), 0.5)) - \
+                        np.linalg.norm(relative_position_rhs - np.full((3,), 0.5))
+            if diff_norm < - K_EPSILON:
+                return True
+            if diff_norm > K_EPSILON:
+                return False
+            diff_x = relative_position_lhs[0] - relative_position_rhs[0]
+            # diff_x = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
+
+            return diff_x < -K_EPSILON
+
+        Atom.__lt__ = lambda this, other: _position_sort(this, other)
+        self._atom_list.sort()
+
+    def __eq__(self, other):
+        for atom1, atom2 in zip(self.atom_list, other.atom_list):
+            if atom1.atom_id != atom2.atom_id:
+                return False
+        return True
+
+    def __hash__(self):
+        atom_id_list = [atom.atom_id for atom in self._atom_list]
+        the_hash = hash(tuple(atom_id_list))
+        return the_hash
+
+    @property
+    def atom_list(self) -> typing.List[Atom]:
+        return self._atom_list
+
+    @property
+    def type_key(self) -> str:
+        key = ""
+        for atom in self._atom_list:
+            key += atom.elem_type
+        return key
+
+    @property
+    def size(self) -> int:
+        return len(self._atom_list)
+
+
 def _is_atom_smaller_symmetrically(lhs: Atom, rhs: Atom) -> bool:
     relative_position_lhs = lhs.relative_position
     relative_position_rhs = rhs.relative_position
@@ -255,14 +308,13 @@ def get_one_hot_encoding_list_forward_and_backward_from_mapping(
         result.append(encode_list)
     return tuple(result)
 
-
-# if __name__ == "__main__":
-#     config11 = cfg.read_config("../../test/test_files/test.cfg")
-#     cl_mapping = get_average_cluster_parameters_mapping_symmetry(config11)
-#     forward, backward = get_one_hot_encoding_list_forward_and_backward_from_mapping(
-#         config11, (18, 23), {"Al", "Mg", "Zn"}, cl_mapping)
-#     print(len(forward))
-    # cfg11 = get_symmetrically_sorted_configs(config11, (18, 23))
-    # for atom in cfg11[0].atom_list:
-    #     print((np.linalg.norm(atom.relative_position[1:] - np.full((2,), 0.5)),
-    #           np.linalg.norm(atom.relative_position - np.full((3,), 0.5))))
+if __name__ == "__main__":
+    config11 = cfg.read_config("../../test/test_files/test.cfg")
+    cl_mapping = get_average_cluster_parameters_mapping_symmetry(config11)
+    forward, backward = get_one_hot_encoding_list_forward_and_backward_from_mapping(
+        config11, (18, 23), {"Al", "Mg", "Zn"}, cl_mapping)
+    print(len(cl_mapping))
+# cfg11 = get_symmetrically_sorted_configs(config11, (18, 23))
+# for atom in cfg11[0].atom_list:
+#     print((np.linalg.norm(atom.relative_position[1:] - np.full((2,), 0.5)),
+#           np.linalg.norm(atom.relative_position - np.full((3,), 0.5))))
