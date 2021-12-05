@@ -29,8 +29,8 @@ class Cluster(object):
                 return True
             if diff_norm > K_EPSILON:
                 return False
-            diff_x = relative_position_lhs[0] - relative_position_rhs[0]
-            # diff_x = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
+            # diff_x = relative_position_lhs[0] - relative_position_rhs[0]
+            diff_x = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
 
             return diff_x < -K_EPSILON
 
@@ -73,8 +73,8 @@ def _is_atom_smaller_symmetrically(lhs: Atom, rhs: Atom) -> bool:
         return True
     if diff_norm > K_EPSILON:
         return False
-    diff_x = relative_position_lhs[0] - relative_position_rhs[0]
-    # diff_x = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
+    # diff_x = relative_position_lhs[0] - relative_position_rhs[0]
+    diff_x = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
     return diff_x < - K_EPSILON
 
 
@@ -151,7 +151,6 @@ def _get_symmetrically_sorted_atom_vectors(config: cfg.Config, jump_pair: typing
     """
     atom_id_set = cfg.get_first_second_third_neighbors_set_of_jump_pair(config, jump_pair)
     move_distance = np.full((3,), 0.5) - cfg.get_pair_center(config, jump_pair)
-    logging.debug(f"move_distance {move_distance}")
     atom_list_forward: typing.List[Atom] = list()
     vacancy_relative_position = np.zeros(3)
     vacancy_cartesian_position = np.zeros(3)

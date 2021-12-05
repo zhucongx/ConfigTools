@@ -339,6 +339,15 @@ def get_first_second_third_neighbors_set_of_jump_pair(
     return near_neighbors_hashset
 
 
+def get_first_second_third_neighbors_set_of_atom(
+        config: Config, atom_id: int) -> typing.Set[int]:
+    near_neighbors_hashset: typing.Set[int] = set()
+    atom = config.atom_list[atom_id]
+    for j in atom.first_nearest_neighbor_list + atom.second_nearest_neighbor_list + atom.third_nearest_neighbor_list:
+        near_neighbors_hashset.add(j)
+    return near_neighbors_hashset
+
+
 def get_more_neighbors_set_of_jump_pair(
         config: Config, jump_pair: typing.Tuple[int, int]) -> typing.Set[int]:
     near_neighbors_hashset: typing.Set[int] = set()
