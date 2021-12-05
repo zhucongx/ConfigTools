@@ -21,15 +21,15 @@ class Cluster(object):
 
         # self._atom_list.sort(key=lambda sort_atom: sort_atom.relative_position.tolist())
         def _position_sort(lhs: Atom, rhs: Atom) -> bool:
-            relative_position_lhs = lhs.relative_position
-            relative_position_rhs = rhs.relative_position
-
-            diff_norm = np.linalg.norm(relative_position_lhs - np.full((3,), 0.5)) - \
-                        np.linalg.norm(relative_position_rhs - np.full((3,), 0.5))
-            if diff_norm < - K_EPSILON:
-                return True
-            if diff_norm > K_EPSILON:
-                return False
+            # relative_position_lhs = lhs.relative_position
+            # relative_position_rhs = rhs.relative_position
+            #
+            # diff_norm = np.linalg.norm(relative_position_lhs - np.full((3,), 0.5)) - \
+            #             np.linalg.norm(relative_position_rhs - np.full((3,), 0.5))
+            # if diff_norm < - K_EPSILON:
+            #     return True
+            # if diff_norm > K_EPSILON:
+            #     return False
             return lhs.atom_id < rhs.atom_id
 
         Atom.__lt__ = lambda this, other: _position_sort(this, other)
@@ -63,11 +63,12 @@ class Cluster(object):
 
 
 def _is_atom_smaller(lhs: Atom, rhs: Atom) -> bool:
-    relative_position_lhs = lhs.relative_position
-    relative_position_rhs = rhs.relative_position
-    diff_norm = np.linalg.norm(relative_position_lhs - np.full((3,), 0.5)) - \
-                np.linalg.norm(relative_position_rhs - np.full((3,), 0.5))
-    return diff_norm < - K_EPSILON
+    return lhs.atom_id < rhs.atom_id
+    # relative_position_lhs = lhs.relative_position
+    # relative_position_rhs = rhs.relative_position
+    # diff_norm = np.linalg.norm(relative_position_lhs - np.full((3,), 0.5)) - \
+    #             np.linalg.norm(relative_position_rhs - np.full((3,), 0.5))
+    # return diff_norm < - K_EPSILON
 
 
 def _is_cluster_smaller_symmetrically(lhs: Cluster, rhs: Cluster) -> bool:
