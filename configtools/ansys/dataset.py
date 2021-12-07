@@ -3,7 +3,8 @@ import os
 import numpy as np
 import pandas as pd
 import configtools.cfg as cfg
-import configtools.ansys.cluster_expansion_symmetry as ces
+import configtools.ansys.cluster_expansion_symmetry_mm2 as ces2
+import configtools.ansys.cluster_expansion_symmetry_mmm as cesm
 import configtools.ansys.cluster_expansion_periodic as cep
 import configtools.ansys.bond_counting as bc
 from tqdm import tqdm
@@ -11,7 +12,8 @@ from tqdm import tqdm
 
 def build_pd_file(element_set, path, out_put_destination):
     reference_config = cfg.read_config(os.path.join(path, "config0", "start.cfg"))
-    cluster_mapping_symmetry = ces.get_average_cluster_parameters_mapping_symmetry(reference_config)
+    cluster_mapping_symmetry_mmm = cesm.get_average_cluster_parameters_mapping_symmetry(reference_config)
+    cluster_mapping_symmetry_mm2 = ces2.get_average_cluster_parameters_mapping_symmetry(reference_config)
     cluster_mapping_periodic = cep.get_average_cluster_parameters_mapping_periodic(reference_config)
     df_barriers = pd.read_csv(os.path.join(path, "barriers.txt"), sep='\t')
     ct = 0
@@ -46,11 +48,14 @@ def build_pd_file(element_set, path, out_put_destination):
         energy_list_back = energy_list - energy_end
         energy_list_back = energy_list_back[::-1]
 
-        one_hot_encodes_forward = ces.get_one_hot_encoding_list_forward_and_backward_from_mapping(
-            config_start, jump_pair, element_set, cluster_mapping_symmetry)
-        one_hot_encodes_backward = ces.get_one_hot_encoding_list_forward_and_backward_from_mapping(
-            config_end, jump_pair, element_set, cluster_mapping_symmetry)
-
+        one_hot_encodes_forward_mmm = cesm.get_one_hot_encoding_list_forward_and_backward_from_mapping(
+            config_start, jump_pair, element_set, cluster_mapping_symmetry_mmm)
+        one_hot_encodes_backward_mmm = cesm.get_one_hot_encoding_list_forward_and_backward_from_mapping(
+            config_end, jump_pair, element_set, cluster_mapping_symmetry_mmm)
+        one_hot_encodes_forward_mm2 = ces2.get_one_hot_encoding_list_forward_and_backward_from_mapping(
+            config_start, jump_pair, element_set, cluster_mapping_symmetry_mm2)
+        one_hot_encodes_backward_mm2 = ces2.get_one_hot_encoding_list_forward_and_backward_from_mapping(
+            config_end, jump_pair, element_set, cluster_mapping_symmetry_mm2)
         bond_counting_ground_encode_start = bc.get_encode_of_config(config_start, element_set)
         bond_counting_ground_encode_end = bc.get_encode_of_config(config_end, element_set)
         bond_change_forward = []
@@ -72,7 +77,8 @@ def build_pd_file(element_set, path, out_put_destination):
         data[ct] = [i, migration_atom, migration_system, barriers[0], barriers[0] - barriers[1],
                     0.5 * (barriers[0] + barriers[1]), ground_energies[0], ground_energies[1],
                     distance, distance_list[-1], force,
-                    one_hot_encodes_forward[0], one_hot_encodes_backward[0],
+                    one_hot_encodes_forward_mmm[0], one_hot_encodes_backward_mmm[0],
+                    one_hot_encodes_forward_mm2[0], one_hot_encodes_backward_mm2[0],
                     bond_counting_ground_encode_start, bond_counting_ground_encode_end,
                     bond_change_forward, bond_change_backward,
                     cluster_expansion_ground_encode_start, cluster_expansion_ground_encode_end,
@@ -82,7 +88,8 @@ def build_pd_file(element_set, path, out_put_destination):
         data[ct] = [i, migration_atom, migration_system, barriers[1], barriers[1] - barriers[0],
                     0.5 * (barriers[0] + barriers[1]), ground_energies[1], ground_energies[0],
                     distance, distance_list_back[-1], force,
-                    one_hot_encodes_backward[0], one_hot_encodes_forward[0],
+                    one_hot_encodes_backward_mmm[0], one_hot_encodes_forward_mmm[0],
+                    one_hot_encodes_backward_mm2[0], one_hot_encodes_forward_mm2[0],
                     bond_counting_ground_encode_end, bond_counting_ground_encode_start,
                     bond_change_backward, bond_change_forward,
                     cluster_expansion_ground_encode_end, cluster_expansion_ground_encode_start,
@@ -96,7 +103,8 @@ def build_pd_file(element_set, path, out_put_destination):
         columns=["index", "migration_atom", "migration_system", "migration_barriers", "energy_difference",
                  "e0", "energy_start", "energy_end",
                  "distance", "min_erg_distance", "saddle_force",
-                 "one_hot_encode_forward", "one_hot_encode_backward",
+                 "one_hot_encode_forward_mmm", "one_hot_encode_backward_mmm",
+                 "one_hot_encode_forward_mm2", "one_hot_encode_backward_mm2",
                  "bond_counting_encode_start", "bond_counting_encode_end",
                  "bond_change_encode_forward", "bond_change_encode_backward",
                  "cluster_expansion_encode_start", "cluster_expansion_encode_end",
