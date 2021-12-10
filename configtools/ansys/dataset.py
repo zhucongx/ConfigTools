@@ -64,9 +64,10 @@ def build_pd_file(element_set, path, out_put_destination):
             bond_change_forward.append(y - x)
             bond_change_backward.append(x - y)
 
-        cluster_expansion_ground_encode_start, cluster_expansion_ground_encode_end = \
-            cep.get_one_hot_encoding_list_forward_and_backward_from_mapping(
-                config_start, jump_pair, element_set, cluster_mapping_periodic)
+        cluster_expansion_ground_encode_start = cep.get_one_hot_encoding_list_from_mapping(
+            config_start, element_set, cluster_mapping_periodic)
+        cluster_expansion_ground_encode_end = cep.get_one_hot_encoding_list_from_mapping(
+            config_end, element_set, cluster_mapping_periodic)
         cluster_expansion_change_forward = []
         cluster_expansion_change_backward = []
         for x, y in zip(cluster_expansion_ground_encode_start, cluster_expansion_ground_encode_end):
@@ -78,9 +79,9 @@ def build_pd_file(element_set, path, out_put_destination):
                     distance, distance_list[-1], force,
                     one_hot_encodes_forward_mmm[0], one_hot_encodes_backward_mmm[0],
                     one_hot_encodes_forward_mm2[0], one_hot_encodes_backward_mm2[0],
-                    bond_counting_ground_encode_start, bond_counting_ground_encode_end,
+                    # bond_counting_ground_encode_start, bond_counting_ground_encode_end,
                     bond_change_forward, bond_change_backward,
-                    cluster_expansion_ground_encode_start, cluster_expansion_ground_encode_end,
+                    # cluster_expansion_ground_encode_start, cluster_expansion_ground_encode_end,
                     cluster_expansion_change_forward, cluster_expansion_change_backward,
                     distance_list, energy_list]
         ct += 1
@@ -89,9 +90,9 @@ def build_pd_file(element_set, path, out_put_destination):
                     distance, distance_list_back[-1], force,
                     one_hot_encodes_backward_mmm[0], one_hot_encodes_forward_mmm[0],
                     one_hot_encodes_backward_mm2[0], one_hot_encodes_forward_mm2[0],
-                    bond_counting_ground_encode_end, bond_counting_ground_encode_start,
+                    # bond_counting_ground_encode_end, bond_counting_ground_encode_start,
                     bond_change_backward, bond_change_forward,
-                    cluster_expansion_ground_encode_end, cluster_expansion_ground_encode_start,
+                    # cluster_expansion_ground_encode_end, cluster_expansion_ground_encode_start,
                     cluster_expansion_change_backward, cluster_expansion_change_forward,
                     distance_list_back, energy_list_back]
         ct += 1
@@ -104,9 +105,9 @@ def build_pd_file(element_set, path, out_put_destination):
                  "distance", "min_erg_distance", "saddle_force",
                  "one_hot_encode_forward_mmm", "one_hot_encode_backward_mmm",
                  "one_hot_encode_forward_mm2", "one_hot_encode_backward_mm2",
-                 "bond_counting_encode_start", "bond_counting_encode_end",
+                 # "bond_counting_encode_start", "bond_counting_encode_end",
                  "bond_change_encode_forward", "bond_change_encode_backward",
-                 "cluster_expansion_encode_start", "cluster_expansion_encode_end",
+                 # "cluster_expansion_encode_start", "cluster_expansion_encode_end",
                  "cluster_expansion_change_forward", "cluster_expansion_change_backward",
                  "distance_list", "energy_list"])
     df.to_pickle(out_put_destination)

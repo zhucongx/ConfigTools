@@ -103,11 +103,11 @@ def _is_cluster_smaller_symmetrically(lhs: Cluster, rhs: Cluster) -> bool:
 
 
 def _get_sorted_atom_vector(config: cfg.Config) -> typing.List[Atom]:
-    atom_id_set = cfg.get_first_second_third_neighbors_set_of_atom(config, cfg.get_vacancy_index(config))
+    atom_id_set = cfg.get_neighbors_set_of_atom(config, cfg.get_vacancy_index(config))
     move_distance = np.full((3,), 0.5) - config.atom_list[cfg.get_vacancy_index(config)].relative_position
     atom_list: typing.List[Atom] = list()
     for atom_id in atom_id_set:
-    # for atom_id in range(config.number_atoms):
+        # for atom_id in range(config.number_atoms):
         atom = copy.deepcopy(config.atom_list[atom_id])
         atom.clean_neighbors_lists()
         relative_position = atom.relative_position
@@ -169,65 +169,65 @@ def get_average_cluster_parameters_mapping_periodic(config: cfg.Config) -> typin
     _get_average_parameters_mapping_from_cluster_vector_helper(list(second_pair_set), cluster_mapping)
     _get_average_parameters_mapping_from_cluster_vector_helper(list(third_pair_set), cluster_mapping)
 
-    # triplets
-    # 1-1-1
-    first_first_first_triplets_set: typing.Set[Cluster] = set()
-    # 1-1-2
-    first_first_second_triplets_set: typing.Set[Cluster] = set()
-    # 1-1-3
-    first_first_third_triplets_set: typing.Set[Cluster] = set()
-    # 1-2-2
-    # not exist
-    # 1-2-3
-    first_second_third_triplets_set: typing.Set[Cluster] = set()
-    # 1-3-3
-    first_third_third_triplets_set: typing.Set[Cluster] = set()
-    # 2-2-2
-    # not exist
-    # 2-2-3
-    # not exist
-    # 2-3-3
-    second_third_third_triplets_set: typing.Set[Cluster] = set()
-    # 3-3-3
-    third_third_third_triplets_set: typing.Set[Cluster] = set()
-    for atom1 in atom_list:
-        for atom2_index in atom1.first_nearest_neighbor_list:
-            atom2 = atom_list[atom2_index]
-            for atom3_index in atom2.first_nearest_neighbor_list:
-                atom3 = atom_list[atom3_index]
-                if atom3_index in atom1.first_nearest_neighbor_list:
-                    first_first_first_triplets_set.add(Cluster(atom1, atom2, atom3))
-                if atom3_index in atom1.second_nearest_neighbor_list:
-                    first_first_second_triplets_set.add(Cluster(atom1, atom2, atom3))
-                if atom3_index in atom1.third_nearest_neighbor_list:
-                    first_first_third_triplets_set.add(Cluster(atom1, atom2, atom3))
-            for atom3_index in atom2.second_nearest_neighbor_list:
-                atom3 = atom_list[atom3_index]
-                if atom3_index in atom1.third_nearest_neighbor_list:
-                    first_second_third_triplets_set.add(Cluster(atom1, atom2, atom3))
-            for atom3_index in atom2.third_nearest_neighbor_list:
-                atom3 = atom_list[atom3_index]
-                if atom3_index in atom1.third_nearest_neighbor_list:
-                    first_third_third_triplets_set.add(Cluster(atom1, atom2, atom3))
-        for atom2_index in atom1.second_nearest_neighbor_list:
-            atom2 = atom_list[atom2_index]
-            for atom3_index in atom2.third_nearest_neighbor_list:
-                atom3 = atom_list[atom3_index]
-                if atom3_index in atom1.third_nearest_neighbor_list:
-                    second_third_third_triplets_set.add(Cluster(atom1, atom2, atom3))
-        for atom2_index in atom1.third_nearest_neighbor_list:
-            atom2 = atom_list[atom2_index]
-            for atom3_index in atom2.third_nearest_neighbor_list:
-                atom3 = atom_list[atom3_index]
-                if atom3_index in atom1.third_nearest_neighbor_list:
-                    third_third_third_triplets_set.add(Cluster(atom1, atom2, atom3))
-    _get_average_parameters_mapping_from_cluster_vector_helper(list(first_first_first_triplets_set), cluster_mapping)
-    _get_average_parameters_mapping_from_cluster_vector_helper(list(first_first_second_triplets_set), cluster_mapping)
-    _get_average_parameters_mapping_from_cluster_vector_helper(list(first_first_third_triplets_set), cluster_mapping)
-    _get_average_parameters_mapping_from_cluster_vector_helper(list(first_second_third_triplets_set), cluster_mapping)
-    _get_average_parameters_mapping_from_cluster_vector_helper(list(first_third_third_triplets_set), cluster_mapping)
-    _get_average_parameters_mapping_from_cluster_vector_helper(list(second_third_third_triplets_set), cluster_mapping)
-    _get_average_parameters_mapping_from_cluster_vector_helper(list(third_third_third_triplets_set), cluster_mapping)
+    # # triplets
+    # # 1-1-1
+    # first_first_first_triplets_set: typing.Set[Cluster] = set()
+    # # 1-1-2
+    # first_first_second_triplets_set: typing.Set[Cluster] = set()
+    # # 1-1-3
+    # first_first_third_triplets_set: typing.Set[Cluster] = set()
+    # # 1-2-2
+    # # not exist
+    # # 1-2-3
+    # first_second_third_triplets_set: typing.Set[Cluster] = set()
+    # # 1-3-3
+    # first_third_third_triplets_set: typing.Set[Cluster] = set()
+    # # 2-2-2
+    # # not exist
+    # # 2-2-3
+    # # not exist
+    # # 2-3-3
+    # second_third_third_triplets_set: typing.Set[Cluster] = set()
+    # # 3-3-3
+    # third_third_third_triplets_set: typing.Set[Cluster] = set()
+    # for atom1 in atom_list:
+    #     for atom2_index in atom1.first_nearest_neighbor_list:
+    #         atom2 = atom_list[atom2_index]
+    #         for atom3_index in atom2.first_nearest_neighbor_list:
+    #             atom3 = atom_list[atom3_index]
+    #             if atom3_index in atom1.first_nearest_neighbor_list:
+    #                 first_first_first_triplets_set.add(Cluster(atom1, atom2, atom3))
+    #             if atom3_index in atom1.second_nearest_neighbor_list:
+    #                 first_first_second_triplets_set.add(Cluster(atom1, atom2, atom3))
+    #             if atom3_index in atom1.third_nearest_neighbor_list:
+    #                 first_first_third_triplets_set.add(Cluster(atom1, atom2, atom3))
+    #         for atom3_index in atom2.second_nearest_neighbor_list:
+    #             atom3 = atom_list[atom3_index]
+    #             if atom3_index in atom1.third_nearest_neighbor_list:
+    #                 first_second_third_triplets_set.add(Cluster(atom1, atom2, atom3))
+    #         for atom3_index in atom2.third_nearest_neighbor_list:
+    #             atom3 = atom_list[atom3_index]
+    #             if atom3_index in atom1.third_nearest_neighbor_list:
+    #                 first_third_third_triplets_set.add(Cluster(atom1, atom2, atom3))
+    #     for atom2_index in atom1.second_nearest_neighbor_list:
+    #         atom2 = atom_list[atom2_index]
+    #         for atom3_index in atom2.third_nearest_neighbor_list:
+    #             atom3 = atom_list[atom3_index]
+    #             if atom3_index in atom1.third_nearest_neighbor_list:
+    #                 second_third_third_triplets_set.add(Cluster(atom1, atom2, atom3))
+    #     for atom2_index in atom1.third_nearest_neighbor_list:
+    #         atom2 = atom_list[atom2_index]
+    #         for atom3_index in atom2.third_nearest_neighbor_list:
+    #             atom3 = atom_list[atom3_index]
+    #             if atom3_index in atom1.third_nearest_neighbor_list:
+    #                 third_third_third_triplets_set.add(Cluster(atom1, atom2, atom3))
+    # _get_average_parameters_mapping_from_cluster_vector_helper(list(first_first_first_triplets_set), cluster_mapping)
+    # _get_average_parameters_mapping_from_cluster_vector_helper(list(first_first_second_triplets_set), cluster_mapping)
+    # _get_average_parameters_mapping_from_cluster_vector_helper(list(first_first_third_triplets_set), cluster_mapping)
+    # _get_average_parameters_mapping_from_cluster_vector_helper(list(first_second_third_triplets_set), cluster_mapping)
+    # _get_average_parameters_mapping_from_cluster_vector_helper(list(first_third_third_triplets_set), cluster_mapping)
+    # _get_average_parameters_mapping_from_cluster_vector_helper(list(second_third_third_triplets_set), cluster_mapping)
+    # _get_average_parameters_mapping_from_cluster_vector_helper(list(third_third_third_triplets_set), cluster_mapping)
 
     # # quadruplets
     # first_kind_quadruplets_set: typing.Set[Cluster] = set()
