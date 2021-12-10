@@ -334,7 +334,7 @@ def get_neighbors_set_of_jump_pair(
     near_neighbors_hashset: typing.Set[int] = set()
     for i in jump_pair:
         atom = config.atom_list[i]
-        for j in atom.first_nearest_neighbor_list + atom.second_nearest_neighbor_list:
+        for j in atom.first_nearest_neighbor_list + atom.second_nearest_neighbor_list + atom.third_nearest_neighbor_list:
             near_neighbors_hashset.add(j)
     return near_neighbors_hashset
 
