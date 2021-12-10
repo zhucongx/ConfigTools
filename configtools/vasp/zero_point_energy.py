@@ -26,15 +26,6 @@ def prepare_zpe_poscar(contcar_filename: str,
             min_relative_distance = relative_distance
             poscar_jump_atom_index = atom.atom_id
 
-    d1v = cfg.get_relative_distance_vector(jump_atom, poscar.atom_list[poscar_jump_atom_index])
-    d2v = cfg.get_relative_distance_vector(jump_atom, contcar.atom_list[poscar_jump_atom_index])
-    d3v = cfg.get_relative_distance_vector(poscar.atom_list[poscar_jump_atom_index],
-                                           contcar.atom_list[poscar_jump_atom_index])
-    print(
-        np.inner(d2v, d2v),
-        np.inner(d3v, d3v),
-        np.inner(d1v, d1v),
-        min_relative_distance, poscar_jump_atom_index)
     _write_selective_poscar(contcar, poscar_jump_atom_index, out_filename)
 
 

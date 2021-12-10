@@ -404,10 +404,27 @@ def get_config_system(config: Config) -> str:
     return "-".join(type_list)
 
 
+def find_jump_pair(config_start: Config, config_end: Config) -> typing.Tuple[int, int]:
+    index_distance_list = list()
+    for atom1, atom2 in zip(config_start.atom_list, config_end.atom_list):
+        relative_distance_vector = get_relative_distance_vector(atom1, atom2)
+        relative_distance_square = np.inner(relative_distance_vector, relative_distance_vector)
+        index_distance_list.append((atom1, relative_distance_square))
+    index_distance_list.sort(key=lambda sort_pair: sort_pair[1], reverse=True)
+    if index_distance_list[0][0].elem_type == "X":
+        return index_distance_list[0][0].atom_id, index_distance_list[1][0].atom_id
+    else:
+        return index_distance_list[0][0].atom_id, index_distance_list[1][0].atom_id
+
+
 if __name__ == "__main__":
-    config = read_config("../test/test_files/test.cfg")
-    vacancy_id = get_vacancy_index(config)
-    print(vacancy_id)
+    config1 = read_config("../../test/test_files/forward.cfg")
+    config2 = read_config("../../test/test_files/backward.cfg")
+    print(find_jump_pair(config1, config2))
+
+    # config = read_config("../test/test_files/test.cfg")
+    # vacancy_id = get_vacancy_index(config)
+    # print(vacancy_id)
     # move_distance = np.full((3,), 0.5) - config.atom_list[vacancy_id].relative_position
     #
     # atom_set = get_neighbors_set_of_vacancy(config, vacancy_id)
