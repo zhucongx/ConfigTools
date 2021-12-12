@@ -295,7 +295,7 @@ if __name__ == "__main__":
     #     i.sort()
     #     for j in i:
     #         print(j)
-    print(start)
+    print(len(start))
 
     # ces = get_one_hot_encoding_list_from_mapping(configs, {"Al", "Mg", "Zn"}, cl_mapping)
     # cee = get_one_hot_encoding_list_from_mapping(confige, {"Al", "Mg", "Zn"}, cl_mapping)

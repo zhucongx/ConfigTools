@@ -284,15 +284,15 @@ def get_average_cluster_parameters_mapping_symmetry(config: cfg.Config) -> typin
     _get_average_parameters_mapping_from_cluster_vector_helper(list(second_pair_set), cluster_mapping)
     _get_average_parameters_mapping_from_cluster_vector_helper(list(third_pair_set), cluster_mapping)
 
-    # first nearest triplets
-    triplets_set: typing.Set[Cluster] = set()
-    for atom1 in atom_vector:
-        for atom2_index in atom1.first_nearest_neighbor_list:
-            atom2 = atom_vector[atom2_index]
-            for atom3_index in atom2.first_nearest_neighbor_list:
-                if atom3_index in atom1.first_nearest_neighbor_list:
-                    triplets_set.add(Cluster(atom1, atom2, atom_vector[atom3_index]))
-    _get_average_parameters_mapping_from_cluster_vector_helper(list(triplets_set), cluster_mapping)
+    # # first nearest triplets
+    # triplets_set: typing.Set[Cluster] = set()
+    # for atom1 in atom_vector:
+    #     for atom2_index in atom1.first_nearest_neighbor_list:
+    #         atom2 = atom_vector[atom2_index]
+    #         for atom3_index in atom2.first_nearest_neighbor_list:
+    #             if atom3_index in atom1.first_nearest_neighbor_list:
+    #                 triplets_set.add(Cluster(atom1, atom2, atom_vector[atom3_index]))
+    # _get_average_parameters_mapping_from_cluster_vector_helper(list(triplets_set), cluster_mapping)
 
     return cluster_mapping
 
@@ -348,10 +348,11 @@ if __name__ == "__main__":
     cl_mapping = get_average_cluster_parameters_mapping_symmetry(config11)
     forward, backward = get_one_hot_encoding_list_forward_and_backward_from_mapping(
         config11, (18, 23), {"Al", "Mg", "Zn"}, cl_mapping)
-    for i in cl_mapping:
-        for ii in i:
-            ii.sort()
-        print(i)
+    # for i in cl_mapping:
+    #     i.sort()
+    #     for j in i:
+    #         print(j)
+    print(len(forward))
 # cfg11 = get_symmetrically_sorted_configs(config11, (18, 23))
 # for atom in cfg11[0].atom_list:
 #     print((np.linalg.norm(atom.relative_position[1:] - np.full((2,), 0.5)),

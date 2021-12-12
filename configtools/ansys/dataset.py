@@ -110,7 +110,7 @@ def build_pd_file(element_set, path, out_put_destination):
                  # "cluster_expansion_encode_start", "cluster_expansion_encode_end",
                  "cluster_expansion_change_forward", "cluster_expansion_change_backward",
                  "distance_list", "energy_list"])
-    df.to_pickle(out_put_destination, compression = 'gzip')
-    
+    df.to_pickle(out_put_destination, compression='gzip')
+
 # if __name__ == "__main__":
 #     build_pd_file({"Al", "Mg", "Zn"}, "../../../all_data_neb_result/", "../../data/all_compiled_data_mm2.pkl")
