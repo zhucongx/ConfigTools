@@ -128,7 +128,7 @@ def count_all_bond(config: Config, type_set: typing.Set[str]):
 
 def get_encode_of_config(config: Config, type_set: typing.Set[str]):
     res = []
-    first, second, third, fourth, fifth, sixth, seventh = count_all_bond(config, {"Al", "Mg", "Zn"})
+    first, second, third, fourth, fifth, sixth, seventh = count_all_bond(config, type_set)
     for bond in first.keys():
         res.append(first[bond])
     for bond in second.keys():
@@ -147,7 +147,7 @@ def get_encode_of_config(config: Config, type_set: typing.Set[str]):
 
 
 if __name__ == "__main__":
-    config = read_config("../test/test_files/test.cfg")
+    config = read_config("../../test/test_files/test.cfg")
     # atom1 = config.atom_list[0]
     # res = []
     # for atom2 in config.atom_list:
