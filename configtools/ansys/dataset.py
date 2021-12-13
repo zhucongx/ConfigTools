@@ -65,13 +65,13 @@ def build_pd_file(element_set, path, out_put_destination):
             bond_change_forward.append(y - x)
             bond_change_backward.append(x - y)
 
-        cluster_counting_ground_encode_start = cc.get_encode_of_config(config_start, element_set)
-        cluster_counting_ground_encode_end = cc.get_encode_of_config(config_end, element_set)
-        cluster_change_forward = []
-        cluster_change_backward = []
-        for x, y in zip(cluster_counting_ground_encode_start, cluster_counting_ground_encode_end):
-            cluster_change_forward.append(y - x)
-            cluster_change_backward.append(x - y)
+        # cluster_counting_ground_encode_start = cc.get_encode_of_config(config_start, element_set)
+        # cluster_counting_ground_encode_end = cc.get_encode_of_config(config_end, element_set)
+        # cluster_change_forward = []
+        # cluster_change_backward = []
+        # for x, y in zip(cluster_counting_ground_encode_start, cluster_counting_ground_encode_end):
+        #     cluster_change_forward.append(y - x)
+        #     cluster_change_backward.append(x - y)
 
         cluster_expansion_ground_encode_start = cep.get_one_hot_encoding_list_from_mapping(
             config_start, element_set, cluster_mapping_periodic)
