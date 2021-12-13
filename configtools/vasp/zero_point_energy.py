@@ -26,6 +26,16 @@ def prepare_zpe_poscar(contcar_filename: str,
             min_relative_distance = relative_distance
             poscar_jump_atom_index = atom.atom_id
 
+    # d1v = cfg.get_relative_distance_vector(jump_atom, poscar.atom_list[poscar_jump_atom_index])
+    # d2v = cfg.get_relative_distance_vector(jump_atom, contcar.atom_list[poscar_jump_atom_index])
+    # d3v = cfg.get_relative_distance_vector(poscar.atom_list[poscar_jump_atom_index],
+    #                                        contcar.atom_list[poscar_jump_atom_index])
+    # print(
+    #     np.inner(d2v, d2v),
+    #     np.inner(d3v, d3v),
+    #     np.inner(d1v, d1v),
+    #     min_relative_distance, poscar_jump_atom_index)
+
     _write_selective_poscar(contcar, poscar_jump_atom_index, out_filename)
 
 
@@ -94,8 +104,15 @@ def _write_selective_poscar(contcar: cfg.Config, jump_atom_index: int, out_filen
         f.write(content)
 
 
-# if __name__ == "__main__":
-#     prepare_zpe_poscar('/Volumes/LaCie/GOALI_DFT_BACKUP/new/ordered/config0/s/CONTCAR',
-#                        '/Volumes/LaCie/GOALI_DFT_BACKUP/new/ordered/config0/s/POSCAR',
-#                        '/Volumes/LaCie/GOALI_DFT_BACKUP/new/ordered/config0/s/start.cfg',
-#                        'TEST', 83)
+if __name__ == "__main__":
+    config_s = cfg.read_config(
+        f'/Users/zhucongx/qm_srv1/GOALI_DFT_BACKUP/gm/Compiled/MgZnSn_1/240_5_5_5_1/config0/s/start.cfg')
+    config_e = cfg.read_config(
+        f'/Users/zhucongx/qm_srv1/GOALI_DFT_BACKUP/gm/Compiled/MgZnSn_1/240_5_5_5_1/config0/e_0/end.cfg')
+    v_id, j_id = cfg.find_jump_pair(config_s, config_e)
+    print(v_id, j_id)
+    prepare_zpe_poscar(
+        '/Users/zhucongx/qm_srv1/GOALI_DFT_BACKUP/gm/Compiled/MgZnSn_1/240_5_5_5_1/config0/NEB_0/00/POSCAR',
+        '/Users/zhucongx/qm_srv1/GOALI_DFT_BACKUP/gm/Compiled/MgZnSn_1/240_5_5_5_1/config0/s/POSCAR',
+        '/Users/zhucongx/qm_srv1/GOALI_DFT_BACKUP/gm/Compiled/MgZnSn_1/240_5_5_5_1/config0/s/start.cfg',
+        'TEST', j_id)

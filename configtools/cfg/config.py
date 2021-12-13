@@ -402,7 +402,7 @@ def find_jump_pair(config_start: Config, config_end: Config) -> typing.Tuple[int
     if index_distance_list[0][0].elem_type == "X":
         return index_distance_list[0][0].atom_id, index_distance_list[1][0].atom_id
     else:
-        return index_distance_list[0][0].atom_id, index_distance_list[1][0].atom_id
+        return index_distance_list[1][0].atom_id, index_distance_list[0][0].atom_id
 
 
 if __name__ == "__main__":
