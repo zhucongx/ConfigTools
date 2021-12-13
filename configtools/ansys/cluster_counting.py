@@ -171,7 +171,7 @@ def count_all_cluster(config: Config, type_set: typing.Set[str]):
            OrderedDict(sorted(third_third_third_triplets_count.items(), key=lambda it: it[0]))
 
 
-def get_encode_of_config(config: Config, type_set: typing.Set[str]):
+def get_encode_of_config(config: Config, type_set: typing.Set[str]) -> typing.List[float]:
     res = []
     singlet, first_pair, second_pair, third_pair, first_first_first_triplet, first_first_second_triplet, \
     first_first_third_triplet, first_second_third_triplet, first_third_third_triplet, second_third_third, \
@@ -227,4 +227,9 @@ if __name__ == "__main__":
     print(j)
     print(k)
     jj = get_encode_of_config(config, {"Al", "Mg", "Zn"})
-    print(len(jj))
+    config = read_config("../../test/test_files/backward.cfg")
+    kk = get_encode_of_config(config, {"Al", "Mg", "Zn"})
+    ii = []
+    for j, k in zip(jj, kk):
+        ii.append(k - j)
+    print(ii)
