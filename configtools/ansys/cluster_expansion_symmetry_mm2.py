@@ -282,7 +282,7 @@ def get_average_cluster_parameters_mapping_symmetry(config: cfg.Config) -> typin
 
     _get_average_parameters_mapping_from_cluster_vector_helper(list(first_pair_set), cluster_mapping)
     _get_average_parameters_mapping_from_cluster_vector_helper(list(second_pair_set), cluster_mapping)
-    _get_average_parameters_mapping_from_cluster_vector_helper(list(third_pair_set), cluster_mapping)
+    # _get_average_parameters_mapping_from_cluster_vector_helper(list(third_pair_set), cluster_mapping)
 
     # # first nearest triplets
     # triplets_set: typing.Set[Cluster] = set()
