@@ -282,17 +282,17 @@ def get_average_cluster_parameters_mapping_symmetry(config: cfg.Config) -> typin
 
     _get_average_parameters_mapping_from_cluster_vector_helper(list(first_pair_set), cluster_mapping)
     _get_average_parameters_mapping_from_cluster_vector_helper(list(second_pair_set), cluster_mapping)
-    # _get_average_parameters_mapping_from_cluster_vector_helper(list(third_pair_set), cluster_mapping)
+    _get_average_parameters_mapping_from_cluster_vector_helper(list(third_pair_set), cluster_mapping)
 
-    # # first nearest triplets
-    # triplets_set: typing.Set[Cluster] = set()
-    # for atom1 in atom_vector:
-    #     for atom2_index in atom1.first_nearest_neighbor_list:
-    #         atom2 = atom_vector[atom2_index]
-    #         for atom3_index in atom2.first_nearest_neighbor_list:
-    #             if atom3_index in atom1.first_nearest_neighbor_list:
-    #                 triplets_set.add(Cluster(atom1, atom2, atom_vector[atom3_index]))
-    # _get_average_parameters_mapping_from_cluster_vector_helper(list(triplets_set), cluster_mapping)
+    # first nearest triplets
+    triplets_set: typing.Set[Cluster] = set()
+    for atom1 in atom_vector:
+        for atom2_index in atom1.first_nearest_neighbor_list:
+            atom2 = atom_vector[atom2_index]
+            for atom3_index in atom2.first_nearest_neighbor_list:
+                if atom3_index in atom1.first_nearest_neighbor_list:
+                    triplets_set.add(Cluster(atom1, atom2, atom_vector[atom3_index]))
+    _get_average_parameters_mapping_from_cluster_vector_helper(list(triplets_set), cluster_mapping)
 
     return cluster_mapping
 
