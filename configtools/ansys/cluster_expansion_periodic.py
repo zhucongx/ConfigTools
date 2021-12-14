@@ -106,8 +106,8 @@ def _get_sorted_atom_vector(config: cfg.Config) -> typing.List[Atom]:
     atom_id_set = cfg.get_neighbors_set_of_atom(config, cfg.get_vacancy_index(config))
     move_distance = np.full((3,), 0.5) - config.atom_list[cfg.get_vacancy_index(config)].relative_position
     atom_list: typing.List[Atom] = list()
-    # for atom_id in atom_id_set:
-    for atom_id in range(config.number_atoms):
+    for atom_id in atom_id_set:
+    # for atom_id in range(config.number_atoms):
         atom = copy.deepcopy(config.atom_list[atom_id])
         if atom.elem_type == "X":
             continue
