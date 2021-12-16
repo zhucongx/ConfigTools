@@ -329,6 +329,18 @@ def get_pair_rotation_matrix(config: Config, jump_pair: typing.Tuple[int, int]) 
     return np.array((pair_direction, vertical_vector, np.cross(pair_direction, vertical_vector))).transpose()
 
 
+def get_all_neighbors_set_of_jump_pair(config: Config, jump_pair: typing.Tuple[int, int]) -> typing.Set[int]:
+    near_neighbors_hashset: typing.Set[int] = set()
+    for i in jump_pair:
+        atom = config.atom_list[i]
+        for j in atom.first_nearest_neighbor_list + atom.second_nearest_neighbor_list + \
+                 atom.third_nearest_neighbor_list + atom.fourth_nearest_neighbor_list + \
+                 atom.fifth_nearest_neighbor_list + atom.sixth_nearest_neighbor_list + \
+                 atom.seventh_nearest_neighbor_list:
+            near_neighbors_hashset.add(j)
+    return near_neighbors_hashset
+
+
 def get_neighbors_set_of_jump_pair(
         config: Config, jump_pair: typing.Tuple[int, int]) -> typing.Set[int]:
     near_neighbors_hashset: typing.Set[int] = set()
@@ -404,26 +416,103 @@ def find_jump_pair(config_start: Config, config_end: Config) -> typing.Tuple[int
         return index_distance_list[1][0].atom_id, index_distance_list[0][0].atom_id
 
 
+def atoms_jump(config: Config, jump_pair: typing.Tuple[int, int]):
+    lhs, rhs = jump_pair
+    temp = config.atom_list[lhs].relative_position
+    config.atom_list[lhs].relative_position = config.atom_list[rhs].relative_position
+    config.atom_list[rhs].relative_position = temp
+
+    temp = config.atom_list[lhs].cartesian_position
+    config.atom_list[lhs].cartesian_position = config.atom_list[rhs].cartesian_position
+    config.atom_list[rhs].cartesian_position = temp
+
+    temp = config.atom_list[lhs].first_nearest_neighbor_list
+    config.atom_list[lhs].first_nearest_neighbor_list = config.atom_list[rhs].first_nearest_neighbor_list
+    config.atom_list[rhs].first_nearest_neighbor_list = temp
+
+    temp = config.atom_list[lhs].second_nearest_neighbor_list
+    config.atom_list[lhs].second_nearest_neighbor_list = config.atom_list[rhs].second_nearest_neighbor_list
+    config.atom_list[rhs].second_nearest_neighbor_list = temp
+
+    temp = config.atom_list[lhs].third_nearest_neighbor_list
+    config.atom_list[lhs].third_nearest_neighbor_list = config.atom_list[rhs].third_nearest_neighbor_list
+    config.atom_list[rhs].third_nearest_neighbor_list = temp
+
+    temp = config.atom_list[lhs].fourth_nearest_neighbor_list
+    config.atom_list[lhs].fourth_nearest_neighbor_list = config.atom_list[rhs].fourth_nearest_neighbor_list
+    config.atom_list[rhs].fourth_nearest_neighbor_list = temp
+
+    temp = config.atom_list[lhs].fifth_nearest_neighbor_list
+    config.atom_list[lhs].fifth_nearest_neighbor_list = config.atom_list[rhs].fifth_nearest_neighbor_list
+    config.atom_list[rhs].fifth_nearest_neighbor_list = temp
+
+    temp = config.atom_list[lhs].sixth_nearest_neighbor_list
+    config.atom_list[lhs].sixth_nearest_neighbor_list = config.atom_list[rhs].sixth_nearest_neighbor_list
+    config.atom_list[rhs].sixth_nearest_neighbor_list = temp
+
+    temp = config.atom_list[lhs].seventh_nearest_neighbor_list
+    config.atom_list[lhs].seventh_nearest_neighbor_list = config.atom_list[rhs].seventh_nearest_neighbor_list
+    config.atom_list[rhs].seventh_nearest_neighbor_list = temp
+
+    atom_id_set = get_all_neighbors_set_of_jump_pair(config, jump_pair)
+    for i in atom_id_set:
+        for index, j in enumerate(config.atom_list[i].first_nearest_neighbor_list):
+            if j == lhs:
+                config.atom_list[i].first_nearest_neighbor_list[index] = rhs
+            if j == rhs:
+                config.atom_list[i].first_nearest_neighbor_list[index] = lhs
+        for index, j in enumerate(config.atom_list[i].second_nearest_neighbor_list):
+            if j == lhs:
+                config.atom_list[i].second_nearest_neighbor_list[index] = rhs
+            if j == rhs:
+                config.atom_list[i].second_nearest_neighbor_list[index] = lhs
+        for index, j in enumerate(config.atom_list[i].third_nearest_neighbor_list):
+            if j == lhs:
+                config.atom_list[i].third_nearest_neighbor_list[index] = rhs
+            if j == rhs:
+                config.atom_list[i].third_nearest_neighbor_list[index] = lhs
+        for index, j in enumerate(config.atom_list[i].fourth_nearest_neighbor_list):
+            if j == lhs:
+                config.atom_list[i].fourth_nearest_neighbor_list[index] = rhs
+            if j == rhs:
+                config.atom_list[i].fourth_nearest_neighbor_list[index] = lhs
+        for index, j in enumerate(config.atom_list[i].fifth_nearest_neighbor_list):
+            if j == lhs:
+                config.atom_list[i].fifth_nearest_neighbor_list[index] = rhs
+            if j == rhs:
+                config.atom_list[i].fifth_nearest_neighbor_list[index] = lhs
+        for index, j in enumerate(config.atom_list[i].sixth_nearest_neighbor_list):
+            if j == lhs:
+                config.atom_list[i].sixth_nearest_neighbor_list[index] = rhs
+            if j == rhs:
+                config.atom_list[i].sixth_nearest_neighbor_list[index] = lhs
+        for index, j in enumerate(config.atom_list[i].seventh_nearest_neighbor_list):
+            if j == lhs:
+                config.atom_list[i].seventh_nearest_neighbor_list[index] = rhs
+            if j == rhs:
+                config.atom_list[i].seventh_nearest_neighbor_list[index] = lhs
+
 if __name__ == "__main__":
     config1 = read_config("../../test/test_files/forward.cfg")
+    atoms_jump(config1, (18, 23))
     config2 = read_config("../../test/test_files/backward.cfg")
-    print(find_jump_pair(config1, config2))
+#     print(find_jump_pair(config1, config2))
 
-    # config = read_config("../test/test_files/test.cfg")
-    # vacancy_id = get_vacancy_index(config)
-    # print(vacancy_id)
-    # move_distance = np.full((3,), 0.5) - config.atom_list[vacancy_id].relative_position
-    #
-    # atom_set = get_neighbors_set_of_vacancy(config, vacancy_id)
-    # atom_list = config.atom_list
-    # new_atom_list = list()
-    # for idx in atom_set:
-    #     atom = atom_list[idx]
-    #     relative_position = atom.relative_position
-    #     relative_position += move_distance
-    #     relative_position -= np.floor(relative_position)
-    #     atom.relative_position = relative_position
-    #     cartesian_position = (relative_position - np.full((3,), 0.5)).dot(config.basis)
-    #     new_atom_list.append(atom_list[idx])
-    # new_config = Config(config.basis, new_atom_list)
-    # write_config(new_config, "test.cfg")
+# config = read_config("../test/test_files/test.cfg")
+# vacancy_id = get_vacancy_index(config)
+# print(vacancy_id)
+# move_distance = np.full((3,), 0.5) - config.atom_list[vacancy_id].relative_position
+#
+# atom_set = get_neighbors_set_of_vacancy(config, vacancy_id)
+# atom_list = config.atom_list
+# new_atom_list = list()
+# for idx in atom_set:
+#     atom = atom_list[idx]
+#     relative_position = atom.relative_position
+#     relative_position += move_distance
+#     relative_position -= np.floor(relative_position)
+#     atom.relative_position = relative_position
+#     cartesian_position = (relative_position - np.full((3,), 0.5)).dot(config.basis)
+#     new_atom_list.append(atom_list[idx])
+# new_config = Config(config.basis, new_atom_list)
+# write_config(new_config, "test.cfg")
