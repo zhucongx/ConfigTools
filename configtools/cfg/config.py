@@ -403,7 +403,7 @@ def get_config_system(config: Config) -> str:
     return "-".join(type_list)
 
 
-def find_jump_pair(config_start: Config, config_end: Config) -> typing.Tuple[int, int]:
+def find_jump_pair_from_cfg(config_start: Config, config_end: Config) -> typing.Tuple[int, int]:
     index_distance_list = list()
     for atom1, atom2 in zip(config_start.atom_list, config_end.atom_list):
         relative_distance_vector = get_relative_distance_vector(atom1, atom2)
@@ -414,6 +414,16 @@ def find_jump_pair(config_start: Config, config_end: Config) -> typing.Tuple[int
         return index_distance_list[0][0].atom_id, index_distance_list[1][0].atom_id
     else:
         return index_distance_list[1][0].atom_id, index_distance_list[0][0].atom_id
+
+
+def find_jump_id_from_poscar(config_start: Config, config_end: Config) -> int:
+    index_distance_list = list()
+    for atom1, atom2 in zip(config_start.atom_list, config_end.atom_list):
+        relative_distance_vector = get_relative_distance_vector(atom1, atom2)
+        relative_distance_square = np.inner(relative_distance_vector, relative_distance_vector)
+        index_distance_list.append((atom1, relative_distance_square))
+    index_distance_list.sort(key=lambda sort_pair: sort_pair[1], reverse=True)
+    return index_distance_list[0][0].atom_id
 
 
 def atoms_jump(config: Config, jump_pair: typing.Tuple[int, int]):
@@ -491,6 +501,7 @@ def atoms_jump(config: Config, jump_pair: typing.Tuple[int, int]):
                 config.atom_list[i].seventh_nearest_neighbor_list[index] = rhs
             if j == rhs:
                 config.atom_list[i].seventh_nearest_neighbor_list[index] = lhs
+
 
 if __name__ == "__main__":
     config1 = read_config("../../test/test_files/forward.cfg")
