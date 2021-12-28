@@ -5,4 +5,4 @@ from configtools.cfg.config import Config, read_config, write_config, read_posca
     get_config_system, get_average_position_config, get_pair_center, get_pair_rotation_matrix, \
     get_neighbors_set_of_jump_pair, get_neighbors_set_of_atom, \
     get_vacancy_index, get_neighbors_set_of_vacancy, rotate_atom_vector, get_config_system, \
-    find_jump_pair_from_cfg, find_jump_id_from_poscar
+    find_jump_pair_from_cfg, find_jump_id_from_poscar, get_distance_of_atom_between
