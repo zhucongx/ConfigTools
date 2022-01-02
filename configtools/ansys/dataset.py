@@ -32,7 +32,8 @@ def build_pd_file(element_set, path, out_put_destination):
         barriers = (df_barriers.at[i, 'ERGforward'], df_barriers.at[i, 'ERGbackward'])
         ground_energies = (df_barriers.at[i, 'ERGstartshow'], df_barriers.at[i, 'ERGendshow'])
         force = df_barriers.at[i, 'FORCEsaddle']
-        distance = df_barriers.at[i, 'DIST']
+        high_dimensional_distance = df_barriers.at[i, 'DIST']
+        distance = cfg.get_distance_of_atom_between(config_start, config_end, jump_pair[1])
         distance_list = np.array([df_barriers.at[i, 'DISTstart'], df_barriers.at[i, 'DIST1'],
                                   df_barriers.at[i, 'DIST2'], df_barriers.at[i, 'DIST3'],
                                   df_barriers.at[i, 'DIST4'], df_barriers.at[i, 'DIST5'],
@@ -85,7 +86,7 @@ def build_pd_file(element_set, path, out_put_destination):
 
         data[ct] = [i, migration_atom, migration_system, barriers[0], barriers[0] - barriers[1],
                     0.5 * (barriers[0] + barriers[1]), ground_energies[0], ground_energies[1],
-                    distance, distance_list[-1], force,
+                    distance, high_dimensional_distance, distance_list[-1], force,
                     one_hot_encodes_forward_mmm[0], one_hot_encodes_backward_mmm[0],
                     one_hot_encodes_forward_mm2[0], one_hot_encodes_backward_mm2[0],
                     # bond_counting_ground_encode_start, bond_counting_ground_encode_end,
@@ -97,7 +98,7 @@ def build_pd_file(element_set, path, out_put_destination):
         ct += 1
         data[ct] = [i, migration_atom, migration_system, barriers[1], barriers[1] - barriers[0],
                     0.5 * (barriers[0] + barriers[1]), ground_energies[1], ground_energies[0],
-                    distance, distance_list_back[-1], force,
+                    distance, high_dimensional_distance, distance_list_back[-1], force,
                     one_hot_encodes_backward_mmm[0], one_hot_encodes_forward_mmm[0],
                     one_hot_encodes_backward_mm2[0], one_hot_encodes_forward_mm2[0],
                     # bond_counting_ground_encode_end, bond_counting_ground_encode_start,
@@ -113,7 +114,7 @@ def build_pd_file(element_set, path, out_put_destination):
         data, orient="index",
         columns=["index", "migration_atom", "migration_system", "migration_barriers", "energy_difference",
                  "e0", "energy_start", "energy_end",
-                 "distance", "min_erg_distance", "saddle_force",
+                 "distance", "high_dim_distance", "min_erg_distance", "saddle_force",
                  "one_hot_encode_forward_mmm", "one_hot_encode_backward_mmm",
                  "one_hot_encode_forward_mm2", "one_hot_encode_backward_mm2",
                  # "bond_counting_encode_start", "bond_counting_encode_end",
