@@ -23,6 +23,11 @@ def build_pd_file(element_set, path, out_put_destination):
     for i in tqdm(range(len(df_barriers)), desc="Loading configs ..."):
         dir_path = os.path.join(path, "config" + str(i))
 
+        config_s = cfg.read_poscar(os.path.join(dir_path, "POSCAR0"), False)
+        config_e = cfg.read_poscar(os.path.join(dir_path, "POSCAR1"), False)
+        vac_id = cfg.find_jump_id_from_poscar(config_s, config_e)
+        distance = cfg.get_distance_of_atom_between(config_e, config_s, vac_id)
+
         config_start = cfg.read_config(os.path.join(dir_path, "start.cfg"))
         config_end = cfg.read_config(os.path.join(dir_path, "end.cfg"))
 
@@ -33,7 +38,6 @@ def build_pd_file(element_set, path, out_put_destination):
         ground_energies = (df_barriers.at[i, 'ERGstartshow'], df_barriers.at[i, 'ERGendshow'])
         force = df_barriers.at[i, 'FORCEsaddle']
         high_dimensional_distance = df_barriers.at[i, 'DIST']
-        distance = cfg.get_distance_of_atom_between(config_start, config_end, jump_pair[1])
         distance_list = np.array([df_barriers.at[i, 'DISTstart'], df_barriers.at[i, 'DIST1'],
                                   df_barriers.at[i, 'DIST2'], df_barriers.at[i, 'DIST3'],
                                   df_barriers.at[i, 'DIST4'], df_barriers.at[i, 'DIST5'],
