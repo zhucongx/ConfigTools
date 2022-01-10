@@ -3,29 +3,6 @@ import numpy as np
 import configtools.cfg as cfg
 
 
-# def prepare_zpe_poscar(contcar_filename: str,
-#                        poscar_filename: str,
-#                        config_filename: str,
-#                        out_filename: str,
-#                        jump_atom_index: int) -> None:
-#     contcar = cfg.read_poscar(contcar_filename, False)
-#     poscar = cfg.read_poscar(poscar_filename, False)
-#     config = cfg.read_config(config_filename, False)
-#     # get jump atom index in poscar which should be same as that in contcar
-#     jump_atom = config.atom_list[jump_atom_index]
-#     jump_atom_elem_type = jump_atom.elem_type
-#
-#     poscar_jump_atom_index = None
-#     min_relative_distance = 10
-#     for atom in poscar.atom_list:
-#         if atom.elem_type != jump_atom_elem_type:
-#             continue
-#         relative_distance_vector = cfg.get_relative_distance_vector(atom, jump_atom)
-#         relative_distance = np.inner(relative_distance_vector, relative_distance_vector)
-#         if relative_distance < min_relative_distance:
-#             min_relative_distance = relative_distance
-#             poscar_jump_atom_index = atom.atom_id
-#     _write_selective_poscar(contcar, [poscar_jump_atom_index], out_filename)
 def prepare_zpe_poscar(contcar_filename: str,
                        poscar_filename: str,
                        config_filename: str,
@@ -33,7 +10,7 @@ def prepare_zpe_poscar(contcar_filename: str,
                        jump_atom_index: int) -> None:
     contcar = cfg.read_poscar(contcar_filename, False)
     poscar = cfg.read_poscar(poscar_filename, False)
-    config = cfg.read_config(config_filename, False)
+    config = cfg.read_config(config_filename, True)
     # get jump atom index in poscar which should be same as that in contcar
     vac_index = cfg.get_vacancy_index(config)
     contcar_near_neighbors_hashset: typing.Set[int] = set()
@@ -41,7 +18,7 @@ def prepare_zpe_poscar(contcar_filename: str,
     poscar_jump_atom_index = None
     min_relative_distance = 10
     for atom in poscar.atom_list:
-        relative_distance_vector = cfg.get_relative_distance_vector(atom,  config.atom_list[jump_atom_index])
+        relative_distance_vector = cfg.get_relative_distance_vector(atom, config.atom_list[jump_atom_index])
         relative_distance = np.inner(relative_distance_vector, relative_distance_vector)
         if relative_distance < min_relative_distance:
             min_relative_distance = relative_distance
@@ -64,7 +41,7 @@ def prepare_zpe_poscar(contcar_filename: str,
                 min_relative_distance = relative_distance
                 poscar_atom_index = atom.atom_id
         contcar_near_neighbors_hashset.add(poscar_atom_index)
-    _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename+'1')
+    _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename + '1')
     # second neighbors
     config_near_neighbors_hashset: typing.Set[int] = set()
     for atom_index in config.atom_list[vac_index].second_nearest_neighbor_list + \
@@ -81,7 +58,7 @@ def prepare_zpe_poscar(contcar_filename: str,
                 min_relative_distance = relative_distance
                 poscar_atom_index = atom.atom_id
         contcar_near_neighbors_hashset.add(poscar_atom_index)
-    _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename+'2')
+    _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename + '2')
 
 
 def prepare_incar(out_filename) -> None:
@@ -153,7 +130,7 @@ if __name__ == "__main__":
         f'/Users/zhucongx/qm_srv1/GOALI_DFT_BACKUP/gm/Compiled/MgZnSn_1/240_5_5_5_1/config0/s/start.cfg')
     config_e = cfg.read_config(
         f'/Users/zhucongx/qm_srv1/GOALI_DFT_BACKUP/gm/Compiled/MgZnSn_1/240_5_5_5_1/config0/e_0/end.cfg')
-    v_id, j_id = cfg.find_jump_pair(config_s, config_e)
+    v_id, j_id = cfg.find_jump_pair_from_cfg(config_s, config_e)
     print(v_id, j_id)
     prepare_zpe_poscar(
         '/Users/zhucongx/qm_srv1/GOALI_DFT_BACKUP/gm/Compiled/MgZnSn_1/240_5_5_5_1/config0/NEB_0/00/POSCAR',
