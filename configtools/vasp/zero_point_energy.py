@@ -3,6 +3,29 @@ import numpy as np
 import configtools.cfg as cfg
 
 
+# def prepare_zpe_poscar(contcar_filename: str,
+#                        poscar_filename: str,
+#                        config_filename: str,
+#                        out_filename: str,
+#                        jump_atom_index: int) -> None:
+#     contcar = cfg.read_poscar(contcar_filename, False)
+#     poscar = cfg.read_poscar(poscar_filename, False)
+#     config = cfg.read_config(config_filename, False)
+#     # get jump atom index in poscar which should be same as that in contcar
+#     jump_atom = config.atom_list[jump_atom_index]
+#     jump_atom_elem_type = jump_atom.elem_type
+#
+#     poscar_jump_atom_index = None
+#     min_relative_distance = 10
+#     for atom in poscar.atom_list:
+#         if atom.elem_type != jump_atom_elem_type:
+#             continue
+#         relative_distance_vector = cfg.get_relative_distance_vector(atom, jump_atom)
+#         relative_distance = np.inner(relative_distance_vector, relative_distance_vector)
+#         if relative_distance < min_relative_distance:
+#             min_relative_distance = relative_distance
+#             poscar_jump_atom_index = atom.atom_id
+#     _write_selective_poscar(contcar, [poscar_jump_atom_index], out_filename)
 def prepare_zpe_poscar(contcar_filename: str,
                        poscar_filename: str,
                        config_filename: str,
@@ -12,31 +35,53 @@ def prepare_zpe_poscar(contcar_filename: str,
     poscar = cfg.read_poscar(poscar_filename, False)
     config = cfg.read_config(config_filename, False)
     # get jump atom index in poscar which should be same as that in contcar
-    jump_atom = config.atom_list[jump_atom_index]
-    jump_atom_elem_type = jump_atom.elem_type
-
+    vac_index = cfg.get_vacancy_index(config)
+    contcar_near_neighbors_hashset: typing.Set[int] = set()
+    # jump_atom
     poscar_jump_atom_index = None
     min_relative_distance = 10
     for atom in poscar.atom_list:
-        if atom.elem_type != jump_atom_elem_type:
-            continue
-        relative_distance_vector = cfg.get_relative_distance_vector(atom, jump_atom)
+        relative_distance_vector = cfg.get_relative_distance_vector(atom,  config.atom_list[jump_atom_index])
         relative_distance = np.inner(relative_distance_vector, relative_distance_vector)
         if relative_distance < min_relative_distance:
             min_relative_distance = relative_distance
             poscar_jump_atom_index = atom.atom_id
-
-    # d1v = cfg.get_relative_distance_vector(jump_atom, poscar.atom_list[poscar_jump_atom_index])
-    # d2v = cfg.get_relative_distance_vector(jump_atom, contcar.atom_list[poscar_jump_atom_index])
-    # d3v = cfg.get_relative_distance_vector(poscar.atom_list[poscar_jump_atom_index],
-    #                                        contcar.atom_list[poscar_jump_atom_index])
-    # print(
-    #     np.inner(d2v, d2v),
-    #     np.inner(d3v, d3v),
-    #     np.inner(d1v, d1v),
-    #     min_relative_distance, poscar_jump_atom_index)
-
-    _write_selective_poscar(contcar, poscar_jump_atom_index, out_filename)
+    contcar_near_neighbors_hashset.add(poscar_jump_atom_index)
+    _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename)
+    # first neighbors
+    config_near_neighbors_hashset: typing.Set[int] = set()
+    for atom_index in config.atom_list[vac_index].first_nearest_neighbor_list + \
+                      config.atom_list[jump_atom_index].first_nearest_neighbor_list:
+        config_near_neighbors_hashset.add(atom_index)
+    config_near_neighbors_hashset.discard(vac_index)
+    for atom_index in config_near_neighbors_hashset:
+        poscar_atom_index = None
+        min_relative_distance = 10
+        for atom in poscar.atom_list:
+            relative_distance_vector = cfg.get_relative_distance_vector(atom, config.atom_list[atom_index])
+            relative_distance = np.inner(relative_distance_vector, relative_distance_vector)
+            if relative_distance < min_relative_distance:
+                min_relative_distance = relative_distance
+                poscar_atom_index = atom.atom_id
+        contcar_near_neighbors_hashset.add(poscar_atom_index)
+    _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename+'1')
+    # second neighbors
+    config_near_neighbors_hashset: typing.Set[int] = set()
+    for atom_index in config.atom_list[vac_index].second_nearest_neighbor_list + \
+                      config.atom_list[jump_atom_index].second_nearest_neighbor_list:
+        config_near_neighbors_hashset.add(atom_index)
+    config_near_neighbors_hashset.discard(vac_index)
+    for atom_index in config_near_neighbors_hashset:
+        poscar_atom_index = None
+        min_relative_distance = 10
+        for atom in poscar.atom_list:
+            relative_distance_vector = cfg.get_relative_distance_vector(atom, config.atom_list[atom_index])
+            relative_distance = np.inner(relative_distance_vector, relative_distance_vector)
+            if relative_distance < min_relative_distance:
+                min_relative_distance = relative_distance
+                poscar_atom_index = atom.atom_id
+        contcar_near_neighbors_hashset.add(poscar_atom_index)
+    _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename+'2')
 
 
 def prepare_incar(out_filename) -> None:
@@ -71,7 +116,7 @@ LCHARG = .FALSE.
         f.write(content)
 
 
-def _write_selective_poscar(contcar: cfg.Config, jump_atom_index: int, out_filename: str) -> None:
+def _write_selective_poscar(contcar: cfg.Config, atom_index_list: typing.Set[int], out_filename: str) -> None:
     content = "#comment\n1.0\n"
     for basis_row in contcar.basis:
         for base in basis_row:
@@ -92,9 +137,8 @@ def _write_selective_poscar(contcar: cfg.Config, jump_atom_index: int, out_filen
     for element, element_list in element_list_map.items():
         if element == "X":
             continue
-
         for index in element_list:
-            if index == jump_atom_index:
+            if index in atom_index_list:
                 content += np.array2string(contcar.atom_list[int(index)].relative_position,
                                            formatter={"float_kind": lambda x: "%.16f" % x})[1:-1] + " T T T" + "\n"
             else:
