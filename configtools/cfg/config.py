@@ -434,10 +434,20 @@ def get_distance_of_atom_between(config_start: Config, config_end: Config, atom_
             relative_distance_vector[i] -= 1
         while relative_distance_vector[i] < -0.5:
             relative_distance_vector[i] += 1
-
     absolute_distance_vector = relative_distance_vector.dot(config_start.basis)
     absolute_distance_square = np.inner(absolute_distance_vector, absolute_distance_vector)
     return np.sqrt(absolute_distance_square)
+
+
+def get_relative_distance_vector_of_atom_between(config_start: Config, config_end: Config, atom_id: int) -> np.ndarray:
+    relative_distance_vector = config_end.atom_list[atom_id].relative_position - \
+                               config_start.atom_list[atom_id].relative_position
+    for i in range(3):
+        while relative_distance_vector[i] >= 0.5:
+            relative_distance_vector[i] -= 1
+        while relative_distance_vector[i] < -0.5:
+            relative_distance_vector[i] += 1
+    return relative_distance_vector
 
 
 def atoms_jump(config: Config, jump_pair: typing.Tuple[int, int]):
