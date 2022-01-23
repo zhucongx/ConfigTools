@@ -54,36 +54,11 @@ def prepare_zpe_poscar(contcar_filename: str,
     _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename + '2')
 
 
-def prepare_incar(out_filename) -> None:
-    content = """\
-NWRITE = 2
-
-PREC   = Accurate
-ISYM   = 2
-NELM   = 240
-NELMIN = 4
-
-NSW    = 10000
-IBRION = 5
-POTIM  = 0.015
-NFREE  = 2
-ISIF   = 2
-
-ISMEAR = 1
-SIGMA  = 0.4
-
-IALGO  = 48
-LREAL  = AUTO
-ENCUT  = 450.00
-ENAUG  = 600.00
-EDIFF  = 1e-7
-ISPIN  = 1
-
-LWAVE  = .FALSE.
-LCHARG = .FALSE.
-"""
-    with open(out_filename, "w") as f:
-        f.write(content)
+def prepare_frequency_poscar(transition_poscar_filename: str,
+                             out_filename: str,
+                             poscar_jump_atom_index: int) -> None:
+    transition_poscar = cfg.read_poscar(transition_poscar_filename, False)
+    _write_selective_poscar(transition_poscar, {poscar_jump_atom_index}, out_filename)
 
 
 def _write_selective_poscar(contcar: cfg.Config, atom_index_list: typing.Set[int], out_filename: str) -> None:
@@ -117,6 +92,37 @@ def _write_selective_poscar(contcar: cfg.Config, atom_index_list: typing.Set[int
     with open(out_filename, "w") as f:
         f.write(content)
 
+
+def prepare_incar(out_filename) -> None:
+    content = """\
+NWRITE = 2
+
+PREC   = Accurate
+ISYM   = 2
+NELM   = 240
+NELMIN = 4
+
+NSW    = 10000
+IBRION = 5
+POTIM  = 0.015
+NFREE  = 2
+ISIF   = 2
+
+ISMEAR = 1
+SIGMA  = 0.4
+
+IALGO  = 48
+LREAL  = AUTO
+ENCUT  = 450.00
+ENAUG  = 600.00
+EDIFF  = 1e-7
+ISPIN  = 1
+
+LWAVE  = .FALSE.
+LCHARG = .FALSE.
+"""
+    with open(out_filename, "w") as f:
+        f.write(content)
 
 # if __name__ == "__main__":
 #     config_s = cfg.read_config(
