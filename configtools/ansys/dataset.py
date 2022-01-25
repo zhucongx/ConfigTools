@@ -6,7 +6,7 @@ import configtools.cfg as cfg
 import configtools.ansys.cluster_expansion_symmetry_mm2 as ces2
 import configtools.ansys.cluster_expansion_symmetry_mmm as cesm
 import configtools.ansys.cluster_expansion_periodic as cep
-# import configtools.ansys.cluster_counting as cc
+import configtools.ansys.cluster_counting as cc
 import configtools.ansys.bond_counting as bc
 from tqdm import tqdm
 
@@ -70,13 +70,13 @@ def build_pd_file(element_set, path, out_put_destination):
             bond_change_forward.append(y - x)
             bond_change_backward.append(x - y)
 
-        # cluster_counting_ground_encode_start = cc.get_encode_of_config(config_start, element_set)
-        # cluster_counting_ground_encode_end = cc.get_encode_of_config(config_end, element_set)
-        # cluster_change_forward = []
-        # cluster_change_backward = []
-        # for x, y in zip(cluster_counting_ground_encode_start, cluster_counting_ground_encode_end):
-        #     cluster_change_forward.append(y - x)
-        #     cluster_change_backward.append(x - y)
+        cluster_counting_ground_encode_start = cc.get_encode_of_config(config_start, element_set)
+        cluster_counting_ground_encode_end = cc.get_encode_of_config(config_end, element_set)
+        cluster_change_forward = []
+        cluster_change_backward = []
+        for x, y in zip(cluster_counting_ground_encode_start, cluster_counting_ground_encode_end):
+            cluster_change_forward.append(y - x)
+            cluster_change_backward.append(x - y)
 
         cluster_expansion_ground_encode_start = cep.get_one_hot_encoding_list_from_mapping(
             config_start, element_set, cluster_mapping_periodic)
@@ -95,7 +95,7 @@ def build_pd_file(element_set, path, out_put_destination):
                     one_hot_encodes_forward_mm2[0], one_hot_encodes_backward_mm2[0],
                     # bond_counting_ground_encode_start, bond_counting_ground_encode_end,
                     bond_change_forward, bond_change_backward,
-                    # cluster_change_forward, cluster_change_backward,
+                    cluster_change_forward, cluster_change_backward,
                     # cluster_expansion_ground_encode_start, cluster_expansion_ground_encode_end,
                     cluster_expansion_change_forward, cluster_expansion_change_backward,
                     distance_list, energy_list]
@@ -107,7 +107,7 @@ def build_pd_file(element_set, path, out_put_destination):
                     one_hot_encodes_backward_mm2[0], one_hot_encodes_forward_mm2[0],
                     # bond_counting_ground_encode_end, bond_counting_ground_encode_start,
                     bond_change_backward, bond_change_forward,
-                    # cluster_change_backward, cluster_change_forward,
+                    cluster_change_backward, cluster_change_forward,
                     # cluster_expansion_ground_encode_end, cluster_expansion_ground_encode_start,
                     cluster_expansion_change_backward, cluster_expansion_change_forward,
                     distance_list_back, energy_list_back]
@@ -123,7 +123,7 @@ def build_pd_file(element_set, path, out_put_destination):
                  "one_hot_encode_forward_mm2", "one_hot_encode_backward_mm2",
                  # "bond_counting_encode_start", "bond_counting_encode_end",
                  "bond_change_encode_forward", "bond_change_encode_backward",
-                 # "cluster_change_encode_forward", "cluster_change_encode_backward",
+                 "cluster_change_encode_forward", "cluster_change_encode_backward",
                  # "cluster_expansion_encode_start", "cluster_expansion_encode_end",
                  "cluster_expansion_change_forward", "cluster_expansion_change_backward",
                  "distance_list", "energy_list"])
