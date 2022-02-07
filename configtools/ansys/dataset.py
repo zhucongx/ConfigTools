@@ -1,3 +1,4 @@
+import copy
 import os
 import typing
 import numpy as np
@@ -68,7 +69,7 @@ def build_pd_file(element_set: typing.Set[str], path, out_put_destination):
             bond_change_forward.append(y - x)
             bond_change_backward.append(x - y)
 
-        element_set_vac = element_set
+        element_set_vac = copy.copy(element_set)
         element_set_vac.add('X')
         cluster_expansion_start = ce.get_encode_of_config(config_start, element_set_vac)
         cluster_expansion_end = ce.get_encode_of_config(config_end, element_set_vac)
