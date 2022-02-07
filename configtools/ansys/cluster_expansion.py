@@ -74,10 +74,12 @@ def creat_cluster_hashmap(type_set: typing.Set[str]) -> typing.Dict[Cluster, flo
         for type2 in type_set:
             if type2 == "X":
                 continue
+            if type1 == "X" and type2[0] == "p":
+                continue
             for i in range(1, 4):
                 cluster_hashmap[Cluster(i, [type1, type2])] = 0
             for type3 in type_set:
-                if type3 == "X" or type3[-1] == 'p':
+                if type3 == "X" or type3[0] == 'p':
                     continue
                 for i in range(4, 11):
                     cluster_hashmap[Cluster(i, [type1, type2, type3])] = 0
@@ -159,34 +161,32 @@ def get_encode_of_config(config: Config, type_set: typing.Set[str]):
 
 def get_encodes(config_start: Config, config_end: Config, jump_pair: typing.Tuple[int, int], type_set: typing.Set[str]):
     migration_type = config_start.atom_list[jump_pair[1]].elem_type
-    type_set_vac = copy.copy(type_set)
-    type_set_vac.add("X")
-    cluster_expansion_start = get_encode_of_config(config_start, type_set_vac)
-    cluster_expansion_end = get_encode_of_config(config_end, type_set_vac)
+    type_set.add("X")
+    type_set.add("p"+migration_type)
+    cluster_expansion_start = get_encode_of_config(config_start, type_set)
+    cluster_expansion_end = get_encode_of_config(config_end, type_set)
     cluster_expansion_forward, cluster_expansion_backward = [], []
     for x, y in zip(cluster_expansion_start, cluster_expansion_end):
         cluster_expansion_forward.append(y - x)
         cluster_expansion_backward.append(x - y)
-    type_set_pseudo = copy.copy(type_set)
-    type_set_pseudo.add(migration_type + "p")
     config_transition = copy.copy(config_start)
-    config_transition.atom_list[jump_pair[0]].elem_type = migration_type + "p"
-    config_transition.atom_list[jump_pair[1]].elem_type = migration_type + "p"
-    cluster_expansion_transition = get_encode_of_config(config_transition, type_set_pseudo)
+    config_transition.atom_list[jump_pair[0]].elem_type = "p"+migration_type
+    config_transition.atom_list[jump_pair[1]].elem_type = "p"+migration_type
+    cluster_expansion_transition = get_encode_of_config(config_transition, type_set)
     return cluster_expansion_start, cluster_expansion_end, \
            cluster_expansion_forward, cluster_expansion_backward, \
            cluster_expansion_transition
 
 
 if __name__ == "__main__":
-    # aa = creat_cluster_hashmap({"Al", "Mg", "Zn", "X"})
-    # aa = OrderedDict(sorted(aa.items(), key=lambda it: it[0]))
-    # for a in aa:
-    #     print(a, aa[a])
-    # singlet = Cluster(1, ["Al"])
-    conf_s = read_config("../../test/test_files/forward.cfg")
-    conf_e = read_config("../../test/test_files/backward.cfg")
-    aa = get_encodes(conf_s, conf_e, (18, 23), {"Al", "Mg", "Zn"})
+    aa = creat_cluster_hashmap({"Al", "Mg", "Zn", "X", "pMg"})
+    aa = OrderedDict(sorted(aa.items(), key=lambda it: it[0]))
     for a in aa:
-        print(len(a))
-    print(aa)
+        print(a, aa[a])
+    # print(len(aa))
+    # conf_s = read_config("../../test/test_files/forward.cfg")
+    # conf_e = read_config("../../test/test_files/backward.cfg")
+    # aa = get_encodes(conf_s, conf_e, (18, 23), {"Al", "Mg", "Zn"})
+    # for a in aa:
+    #     print(len(a))
+    # print(aa)
