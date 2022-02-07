@@ -161,10 +161,11 @@ def get_encode_of_config(config: Config, type_set: typing.Set[str]):
 
 def get_encodes(config_start: Config, config_end: Config, jump_pair: typing.Tuple[int, int], type_set: typing.Set[str]):
     migration_type = config_start.atom_list[jump_pair[1]].elem_type
-    type_set.add("X")
-    type_set.add("p"+migration_type)
-    cluster_expansion_start = get_encode_of_config(config_start, type_set)
-    cluster_expansion_end = get_encode_of_config(config_end, type_set)
+    _type_set = copy.copy(type_set)
+    _type_set.add("X")
+    _type_set.add("p"+migration_type)
+    cluster_expansion_start = get_encode_of_config(config_start, _type_set)
+    cluster_expansion_end = get_encode_of_config(config_end, _type_set)
     cluster_expansion_forward, cluster_expansion_backward = [], []
     for x, y in zip(cluster_expansion_start, cluster_expansion_end):
         cluster_expansion_forward.append(y - x)
@@ -172,7 +173,7 @@ def get_encodes(config_start: Config, config_end: Config, jump_pair: typing.Tupl
     config_transition = copy.copy(config_start)
     config_transition.atom_list[jump_pair[0]].elem_type = "p"+migration_type
     config_transition.atom_list[jump_pair[1]].elem_type = "p"+migration_type
-    cluster_expansion_transition = get_encode_of_config(config_transition, type_set)
+    cluster_expansion_transition = get_encode_of_config(config_transition, _type_set)
     return cluster_expansion_start, cluster_expansion_end, \
            cluster_expansion_forward, cluster_expansion_backward, \
            cluster_expansion_transition
