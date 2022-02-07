@@ -138,26 +138,26 @@ def count_all_cluster(config: Config, type_set: typing.Set[str]):
                     third_third_third_triplets_count[Cluster(type1, type2, type3)] += 1
 
     for bond in first_pair_count.keys():
-        first_pair_count[bond] /= 2
+        first_pair_count[bond] /= 1
     for bond in second_pair_count.keys():
-        second_pair_count[bond] /= 2
+        second_pair_count[bond] /= 1
     for bond in third_pair_count.keys():
-        third_pair_count[bond] /= 2
+        third_pair_count[bond] /= 1
 
     for bond in first_first_first_triplets_count.keys():
-        first_first_first_triplets_count[bond] /= 6
+        first_first_first_triplets_count[bond] /= 1
     for bond in first_first_second_triplets_count.keys():
-        first_first_second_triplets_count[bond] /= 6
+        first_first_second_triplets_count[bond] /= 1
     for bond in first_first_third_triplets_count.keys():
-        first_first_third_triplets_count[bond] /= 6
+        first_first_third_triplets_count[bond] /= 1
     for bond in first_second_third_triplets_count.keys():
-        first_second_third_triplets_count[bond] /= 6
+        first_second_third_triplets_count[bond] /= 1
     for bond in first_third_third_triplets_count.keys():
-        first_third_third_triplets_count[bond] /= 6
+        first_third_third_triplets_count[bond] /= 1
     for bond in second_third_third_triplets_count.keys():
-        second_third_third_triplets_count[bond] /= 6
+        second_third_third_triplets_count[bond] /= 1
     for bond in third_third_third_triplets_count.keys():
-        third_third_third_triplets_count[bond] /= 6
+        third_third_third_triplets_count[bond] /= 1
     return OrderedDict(sorted(singlets_count.items(), key=lambda it: it[0])), \
            OrderedDict(sorted(first_pair_count.items(), key=lambda it: it[0])), \
            OrderedDict(sorted(second_pair_count.items(), key=lambda it: it[0])), \
@@ -203,7 +203,7 @@ def get_encode_of_config(config: Config, type_set: typing.Set[str]) -> typing.Li
 
 
 if __name__ == "__main__":
-    config = read_config("../../test/test_files/forward.cfg")
+    conf = read_config("../../test/test_files/forward.cfg")
     # atom1 = config.atom_list[0]
     # res = []
     # for atom2 in config.atom_list:
@@ -213,7 +213,7 @@ if __name__ == "__main__":
     # res = sorted(res)
     # for i in res:
     #     print(i)
-    a, b, c, d, e, f, g, h, i, j, k = count_all_cluster(config, {"Al", "Mg", "Zn"})
+    a, b, c, d, e, f, g, h, i, j, k = count_all_cluster(conf, {"Al", "Mg", "Zn"})
 
     print(a)
     print(b)
@@ -226,10 +226,12 @@ if __name__ == "__main__":
     print(i)
     print(j)
     print(k)
-    jj = get_encode_of_config(config, {"Al", "Mg", "Zn"})
+    jj = get_encode_of_config(conf, {"Al", "Mg", "Zn"})
     config = read_config("../../test/test_files/backward.cfg")
     kk = get_encode_of_config(config, {"Al", "Mg", "Zn"})
     ii = []
     for j, k in zip(jj, kk):
+        j = int(j)
         ii.append(k - j)
-    print(ii)
+
+    print(jj)

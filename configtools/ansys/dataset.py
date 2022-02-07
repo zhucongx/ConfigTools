@@ -1,21 +1,19 @@
 import os
-
+import typing
 import numpy as np
 import pandas as pd
 import configtools.cfg as cfg
 import configtools.ansys.cluster_expansion_symmetry_mm2 as ces2
 import configtools.ansys.cluster_expansion_symmetry_mmm as cesm
-import configtools.ansys.cluster_expansion_periodic as cep
-import configtools.ansys.cluster_counting as cc
+import configtools.ansys.cluster_expansion as ce
 import configtools.ansys.bond_counting as bc
 from tqdm import tqdm
 
 
-def build_pd_file(element_set, path, out_put_destination):
+def build_pd_file(element_set: typing.Set[str], path, out_put_destination):
     reference_config = cfg.read_config(os.path.join(path, "config0", "start.cfg"))
     cluster_mapping_symmetry_mmm = cesm.get_average_cluster_parameters_mapping_symmetry(reference_config)
     cluster_mapping_symmetry_mm2 = ces2.get_average_cluster_parameters_mapping_symmetry(reference_config)
-    cluster_mapping_periodic = cep.get_average_cluster_parameters_mapping_periodic(reference_config)
     df_barriers = pd.read_csv(os.path.join(path, "barriers.txt"), sep='\t')
     ct = 0
 
@@ -70,23 +68,15 @@ def build_pd_file(element_set, path, out_put_destination):
             bond_change_forward.append(y - x)
             bond_change_backward.append(x - y)
 
-        cluster_counting_ground_encode_start = cc.get_encode_of_config(config_start, element_set)
-        cluster_counting_ground_encode_end = cc.get_encode_of_config(config_end, element_set)
-        cluster_change_forward = []
-        cluster_change_backward = []
-        for x, y in zip(cluster_counting_ground_encode_start, cluster_counting_ground_encode_end):
-            cluster_change_forward.append(y - x)
-            cluster_change_backward.append(x - y)
-
-        cluster_expansion_ground_encode_start = cep.get_one_hot_encoding_list_from_mapping(
-            config_start, element_set, cluster_mapping_periodic)
-        cluster_expansion_ground_encode_end = cep.get_one_hot_encoding_list_from_mapping(
-            config_end, element_set, cluster_mapping_periodic)
-        cluster_expansion_change_forward = []
-        cluster_expansion_change_backward = []
-        for x, y in zip(cluster_expansion_ground_encode_start, cluster_expansion_ground_encode_end):
-            cluster_expansion_change_forward.append(y - x)
-            cluster_expansion_change_backward.append(x - y)
+        element_set_vac = element_set
+        element_set_vac.add('X')
+        cluster_expansion_start = ce.get_encode_of_config(config_start, element_set_vac)
+        cluster_expansion_end = ce.get_encode_of_config(config_end, element_set_vac)
+        cluster_expansion_forward = []
+        cluster_expansion_backward = []
+        for x, y in zip(cluster_expansion_start, cluster_expansion_end):
+            cluster_expansion_forward.append(y - x)
+            cluster_expansion_backward.append(x - y)
 
         data[ct] = [i, migration_atom, migration_system, barriers[0], barriers[0] - barriers[1],
                     0.5 * (barriers[0] + barriers[1]), ground_energies[0], ground_energies[1],
@@ -95,9 +85,8 @@ def build_pd_file(element_set, path, out_put_destination):
                     one_hot_encodes_forward_mm2[0], one_hot_encodes_backward_mm2[0],
                     # bond_counting_ground_encode_start, bond_counting_ground_encode_end,
                     bond_change_forward, bond_change_backward,
-                    cluster_change_forward, cluster_change_backward,
-                    # cluster_expansion_ground_encode_start, cluster_expansion_ground_encode_end,
-                    cluster_expansion_change_forward, cluster_expansion_change_backward,
+                    cluster_expansion_start, cluster_expansion_end,
+                    cluster_expansion_forward, cluster_expansion_backward,
                     distance_list, energy_list]
         ct += 1
         data[ct] = [i, migration_atom, migration_system, barriers[1], barriers[1] - barriers[0],
@@ -107,9 +96,8 @@ def build_pd_file(element_set, path, out_put_destination):
                     one_hot_encodes_backward_mm2[0], one_hot_encodes_forward_mm2[0],
                     # bond_counting_ground_encode_end, bond_counting_ground_encode_start,
                     bond_change_backward, bond_change_forward,
-                    cluster_change_backward, cluster_change_forward,
-                    # cluster_expansion_ground_encode_end, cluster_expansion_ground_encode_start,
-                    cluster_expansion_change_backward, cluster_expansion_change_forward,
+                    cluster_expansion_end, cluster_expansion_start,
+                    cluster_expansion_backward, cluster_expansion_forward,
                     distance_list_back, energy_list_back]
         ct += 1
 
@@ -123,9 +111,8 @@ def build_pd_file(element_set, path, out_put_destination):
                  "one_hot_encode_forward_mm2", "one_hot_encode_backward_mm2",
                  # "bond_counting_encode_start", "bond_counting_encode_end",
                  "bond_change_encode_forward", "bond_change_encode_backward",
-                 "cluster_change_encode_forward", "cluster_change_encode_backward",
-                 # "cluster_expansion_encode_start", "cluster_expansion_encode_end",
-                 "cluster_expansion_change_forward", "cluster_expansion_change_backward",
+                 "cluster_expansion_start", "cluster_expansion_end"
+                 "cluster_expansion_forward", "cluster_expansion_backward",
                  "distance_list", "energy_list"])
     df.to_pickle(out_put_destination, compression='gzip')
 
