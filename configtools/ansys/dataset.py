@@ -111,7 +111,7 @@ def build_pd_file(element_set: typing.Set[str], path, out_put_destination):
                  "one_hot_encode_forward_mm2", "one_hot_encode_backward_mm2",
                  # "bond_counting_encode_start", "bond_counting_encode_end",
                  "bond_change_encode_forward", "bond_change_encode_backward",
-                 "cluster_expansion_start", "cluster_expansion_end"
+                 "cluster_expansion_start", "cluster_expansion_end",
                  "cluster_expansion_forward", "cluster_expansion_backward",
                  "distance_list", "energy_list"])
     df.to_pickle(out_put_destination, compression='gzip')
