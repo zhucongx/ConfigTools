@@ -22,10 +22,10 @@ def build_pd_file(element_set: typing.Set[str], path, out_put_destination):
     for i in tqdm(range(len(df_barriers)), desc="Loading configs ..."):
         dir_path = os.path.join(path, "config" + str(i))
 
-        config_s = cfg.read_poscar(os.path.join(dir_path, "POSCAR0"), False)
-        config_e = cfg.read_poscar(os.path.join(dir_path, "POSCAR1"), False)
-        vac_id = cfg.find_jump_id_from_poscar(config_s, config_e)
-        distance = cfg.get_distance_of_atom_between(config_e, config_s, vac_id)
+        poscar_s = cfg.read_poscar(os.path.join(dir_path, "POSCAR0"), False)
+        poscar_e = cfg.read_poscar(os.path.join(dir_path, "POSCAR1"), False)
+        vac_id = cfg.find_jump_id_from_poscar(poscar_s, poscar_e)
+        distance = cfg.get_distance_of_atom_between(poscar_e, poscar_s, vac_id)
 
         config_start = cfg.read_config(os.path.join(dir_path, "start.cfg"))
         config_end = cfg.read_config(os.path.join(dir_path, "end.cfg"))
@@ -61,6 +61,7 @@ def build_pd_file(element_set: typing.Set[str], path, out_put_destination):
             config_start, jump_pair, element_set, cluster_mapping_symmetry_mm2)
         one_hot_encodes_backward_mm2 = ces2.get_one_hot_encoding_list_forward_and_backward_from_mapping(
             config_end, jump_pair, element_set, cluster_mapping_symmetry_mm2)
+
         bond_counting_ground_encode_start = bc.get_encode_of_config(config_start, element_set)
         bond_counting_ground_encode_end = bc.get_encode_of_config(config_end, element_set)
         bond_change_forward = []
@@ -69,15 +70,9 @@ def build_pd_file(element_set: typing.Set[str], path, out_put_destination):
             bond_change_forward.append(y - x)
             bond_change_backward.append(x - y)
 
-        element_set_vac = copy.copy(element_set)
-        element_set_vac.add('X')
-        cluster_expansion_start = ce.get_encode_of_config(config_start, element_set_vac)
-        cluster_expansion_end = ce.get_encode_of_config(config_end, element_set_vac)
-        cluster_expansion_forward = []
-        cluster_expansion_backward = []
-        for x, y in zip(cluster_expansion_start, cluster_expansion_end):
-            cluster_expansion_forward.append(y - x)
-            cluster_expansion_backward.append(x - y)
+        cluster_expansion_start, cluster_expansion_end, \
+        cluster_expansion_forward, cluster_expansion_backward, \
+        cluster_expansion_transition = ce.get_encodes(config_start, config_end, jump_pair, element_set)
 
         data[ct] = [i, migration_atom, migration_system, barriers[0], barriers[0] - barriers[1],
                     0.5 * (barriers[0] + barriers[1]), ground_energies[0], ground_energies[1],
@@ -88,6 +83,7 @@ def build_pd_file(element_set: typing.Set[str], path, out_put_destination):
                     bond_change_forward, bond_change_backward,
                     cluster_expansion_start, cluster_expansion_end,
                     cluster_expansion_forward, cluster_expansion_backward,
+                    cluster_expansion_transition,
                     distance_list, energy_list]
         ct += 1
         data[ct] = [i, migration_atom, migration_system, barriers[1], barriers[1] - barriers[0],
@@ -99,6 +95,7 @@ def build_pd_file(element_set: typing.Set[str], path, out_put_destination):
                     bond_change_backward, bond_change_forward,
                     cluster_expansion_end, cluster_expansion_start,
                     cluster_expansion_backward, cluster_expansion_forward,
+                    cluster_expansion_transition,
                     distance_list_back, energy_list_back]
         ct += 1
 
@@ -114,6 +111,7 @@ def build_pd_file(element_set: typing.Set[str], path, out_put_destination):
                  "bond_change_encode_forward", "bond_change_encode_backward",
                  "cluster_expansion_start", "cluster_expansion_end",
                  "cluster_expansion_forward", "cluster_expansion_backward",
+                 "cluster_expansion_transition",
                  "distance_list", "energy_list"])
     df.to_pickle(out_put_destination, compression='gzip')
 

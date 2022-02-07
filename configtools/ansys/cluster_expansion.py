@@ -77,7 +77,7 @@ def creat_cluster_hashmap(type_set: typing.Set[str]) -> typing.Dict[Cluster, flo
             for i in range(1, 4):
                 cluster_hashmap[Cluster(i, [type1, type2])] = 0
             for type3 in type_set:
-                if type3 == "X":
+                if type3 == "X" or type3[-1] == 'p':
                     continue
                 for i in range(4, 11):
                     cluster_hashmap[Cluster(i, [type1, type2, type3])] = 0
@@ -89,26 +89,19 @@ def get_encode_of_config(config: Config, type_set: typing.Set[str]):
     cluster_counter: typing.Dict[int, int] = dict()
     for i in range(11):
         cluster_counter[i] = 0
-
     for atom1 in config.atom_list:
         type1 = atom1.elem_type
-        if type1 not in type_set:
-            continue
         # 0 singlet
         cluster_hashmap[Cluster(0, [type1])] += 1
         cluster_counter[0] += 1
         for atom2_index in atom1.first_nearest_neighbor_list:
             atom2 = config.atom_list[atom2_index]
             type2 = atom2.elem_type
-            if type2 not in type_set:
-                continue
             # 1 first pair
             cluster_hashmap[Cluster(1, [type1, type2])] += 1
             cluster_counter[1] += 1
             for atom3_index in atom2.first_nearest_neighbor_list:
                 type3 = config.atom_list[atom3_index].elem_type
-                if type3 not in type_set:
-                    continue
                 if atom3_index in atom1.first_nearest_neighbor_list:
                     # 4 first first first triplet
                     cluster_hashmap[Cluster(4, [type1, type2, type3])] += 1
@@ -123,16 +116,12 @@ def get_encode_of_config(config: Config, type_set: typing.Set[str]):
                     cluster_counter[6] += 1
             for atom3_index in atom2.second_nearest_neighbor_list:
                 type3 = config.atom_list[atom3_index].elem_type
-                if type3 not in type_set:
-                    continue
                 if atom3_index in atom1.third_nearest_neighbor_list:
                     # 7 first second third triplet
                     cluster_hashmap[Cluster(7, [type1, type2, type3])] += 1
                     cluster_counter[7] += 1
             for atom3_index in atom2.third_nearest_neighbor_list:
                 type3 = config.atom_list[atom3_index].elem_type
-                if type3 not in type_set:
-                    continue
                 if atom3_index in atom1.third_nearest_neighbor_list:
                     # 8 first third third triplet
                     cluster_hashmap[Cluster(8, [type1, type2, type3])] += 1
@@ -140,15 +129,11 @@ def get_encode_of_config(config: Config, type_set: typing.Set[str]):
         for atom2_index in atom1.second_nearest_neighbor_list:
             atom2 = config.atom_list[atom2_index]
             type2 = atom2.elem_type
-            if type2 not in type_set:
-                continue
             # 2 second pair
             cluster_hashmap[Cluster(2, [type1, type2])] += 1
             cluster_counter[2] += 1
             for atom3_index in atom2.third_nearest_neighbor_list:
                 type3 = config.atom_list[atom3_index].elem_type
-                if type3 not in type_set:
-                    continue
                 if atom3_index in atom1.third_nearest_neighbor_list:
                     # 9 second third third triplet
                     cluster_hashmap[Cluster(9, [type1, type2, type3])] += 1
@@ -156,15 +141,11 @@ def get_encode_of_config(config: Config, type_set: typing.Set[str]):
         for atom2_index in atom1.third_nearest_neighbor_list:
             atom2 = config.atom_list[atom2_index]
             type2 = atom2.elem_type
-            if type2 not in type_set:
-                continue
             # 3 third pair
             cluster_hashmap[Cluster(3, [type1, type2])] += 1
             cluster_counter[3] += 1
             for atom3_index in atom2.third_nearest_neighbor_list:
                 type3 = config.atom_list[atom3_index].elem_type
-                if type3 not in type_set:
-                    continue
                 if atom3_index in atom1.third_nearest_neighbor_list:
                     # 10 third third third triplet
                     cluster_hashmap[Cluster(10, [type1, type2, type3])] += 1
@@ -172,8 +153,29 @@ def get_encode_of_config(config: Config, type_set: typing.Set[str]):
     cluster_hashmap = OrderedDict(sorted(cluster_hashmap.items(), key=lambda it: it[0]))
     res = []
     for cluster in cluster_hashmap:
-        res.append(cluster_hashmap[cluster]/cluster_counter[cluster.label])
+        res.append(cluster_hashmap[cluster] / cluster_counter[cluster.label])
     return res
+
+
+def get_encodes(config_start: Config, config_end: Config, jump_pair: typing.Tuple[int, int], type_set: typing.Set[str]):
+    migration_type = config_start.atom_list[jump_pair[1]].elem_type
+    type_set_vac = copy.copy(type_set)
+    type_set_vac.add("X")
+    cluster_expansion_start = get_encode_of_config(config_start, type_set_vac)
+    cluster_expansion_end = get_encode_of_config(config_end, type_set_vac)
+    cluster_expansion_forward, cluster_expansion_backward = [], []
+    for x, y in zip(cluster_expansion_start, cluster_expansion_end):
+        cluster_expansion_forward.append(y - x)
+        cluster_expansion_backward.append(x - y)
+    type_set_pseudo = copy.copy(type_set)
+    type_set_pseudo.add(migration_type + "p")
+    config_transition = copy.copy(config_start)
+    config_transition.atom_list[jump_pair[0]].elem_type = migration_type + "p"
+    config_transition.atom_list[jump_pair[1]].elem_type = migration_type + "p"
+    cluster_expansion_transition = get_encode_of_config(config_transition, type_set_pseudo)
+    return cluster_expansion_start, cluster_expansion_end, \
+           cluster_expansion_forward, cluster_expansion_backward, \
+           cluster_expansion_transition
 
 
 if __name__ == "__main__":
@@ -182,6 +184,9 @@ if __name__ == "__main__":
     # for a in aa:
     #     print(a, aa[a])
     # singlet = Cluster(1, ["Al"])
-    conf = read_config("../../test/test_files/forward.cfg")
-    aa = get_encode_of_config(conf, {"Al", "Mg", "Zn", "X"})
+    conf_s = read_config("../../test/test_files/forward.cfg")
+    conf_e = read_config("../../test/test_files/backward.cfg")
+    aa = get_encodes(conf_s, conf_e, (18, 23), {"Al", "Mg", "Zn"})
+    for a in aa:
+        print(len(a))
     print(aa)
