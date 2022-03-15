@@ -29,6 +29,8 @@ class Cluster(object):
         return False
 
     def __eq__(self, other):
+        if self.size != other.size:
+            return False
         if self._label != other.label:
             return False
         for type1, type2 in zip(self._type_list, other.type_list):
@@ -108,11 +110,11 @@ def get_encode_of_config(config: Config, type_set: typing.Set[str]):
                     # 4 first first first triplet
                     cluster_hashmap[Cluster(4, [type1, type2, type3])] += 1
                     cluster_counter[4] += 1
-                if atom3_index in atom1.second_nearest_neighbor_list:
+                elif atom3_index in atom1.second_nearest_neighbor_list:
                     # 5 first first second triplet
                     cluster_hashmap[Cluster(5, [type1, type2, type3])] += 1
                     cluster_counter[5] += 1
-                if atom3_index in atom1.third_nearest_neighbor_list:
+                elif atom3_index in atom1.third_nearest_neighbor_list:
                     # 6 first first third triplet
                     cluster_hashmap[Cluster(6, [type1, type2, type3])] += 1
                     cluster_counter[6] += 1
@@ -180,14 +182,14 @@ def get_encodes(config_start: Config, config_end: Config, jump_pair: typing.Tupl
 
 
 if __name__ == "__main__":
-    aa = creat_cluster_hashmap({"Al", "Mg", "Zn", "X", "pMg"})
-    aa = OrderedDict(sorted(aa.items(), key=lambda it: it[0]))
-    for a in aa:
-        print(a, aa[a])
-    # print(len(aa))
-    # conf_s = read_config("../../test/test_files/forward.cfg")
-    # conf_e = read_config("../../test/test_files/backward.cfg")
-    # aa = get_encodes(conf_s, conf_e, (18, 23), {"Al", "Mg", "Zn"})
+    # aa = creat_cluster_hashmap({"Al", "Mg", "Zn", "X", "pAl"})
+    # aa = OrderedDict(sorted(aa.items(), key=lambda it: it[0]))
     # for a in aa:
-    #     print(len(a))
-    # print(aa)
+    #     print(a, aa[a])
+    # print(len(aa))
+    conf_s = read_config("../../test/test_files/forward.cfg")
+    conf_e = read_config("../../test/test_files/backward.cfg")
+    aaa = get_encodes(conf_s, conf_e, (18, 23), {"Al", "Mg", "Zn"})
+    for a in aaa:
+        print(len(a))
+    print(aaa[2])

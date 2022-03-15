@@ -164,8 +164,8 @@ def read_config(filename: str, update_neighbors: bool = True) -> Config:
                 base_index += NUM_SECOND_NEAREST_NEIGHBORS
                 for i in range(NUM_THIRD_NEAREST_NEIGHBORS):
                     atom.append_third_nearest_neighbor_list(int(positions[base_index + i]))
-                for i in range(NUM_FOURTH_NEAREST_NEIGHBORS):
-                    atom.append_fourth_nearest_neighbor_list(int(positions[base_index + i]))
+                # for i in range(NUM_FOURTH_NEAREST_NEIGHBORS):
+                #     atom.append_fourth_nearest_neighbor_list(int(positions[base_index + i]))
                 neighbor_found = True
         except IndexError:
             pass
