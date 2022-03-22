@@ -186,3 +186,14 @@ def get_relative_distance_vector(atom1: Atom, atom2: Atom) -> np.ndarray:
         while relative_distance_vector[i] < -0.5:
             relative_distance_vector[i] += 1
     return relative_distance_vector
+
+
+def get_bond_length_type_between(atom1: Atom, atom2: Atom) -> int:
+    if atom1.atom_id in atom2.first_nearest_neighbor_list:
+        return 1
+    elif atom1.atom_id in atom2.second_nearest_neighbor_list:
+        return 2
+    elif atom1.atom_id in atom2.third_nearest_neighbor_list:
+        return 3
+    else:
+        return -1
