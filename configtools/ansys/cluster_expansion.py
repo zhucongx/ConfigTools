@@ -83,7 +83,7 @@ def creat_cluster_hashmap(type_set: typing.Set[str]) -> typing.Dict[Cluster, flo
             for type3 in type_set:
                 if type3 == "X" or type3[0] == 'p':
                     continue
-                for i in range(4, 11):
+                for i in range(4, 8):
                     cluster_hashmap[Cluster(i, [type1, type2, type3])] = 0
     return cluster_hashmap
 
@@ -114,11 +114,11 @@ def find_label(atom_list: typing.List[Atom]) -> int:
         elif t == [1, 2, 3]:
             return 7
         elif t == [1, 3, 3]:
-            return 8
+            return -1
         elif t == [2, 3, 3]:
-            return 9
+            return -1
         elif t == [3, 3, 3]:
-            return 10
+            return -1
         else:
             return -1
     else:
@@ -195,36 +195,36 @@ def get_encode_of_config_old(config: Config, type_set: typing.Set[str]):
                     # 7 first second third triplet
                     cluster_hashmap[Cluster(7, [type1, type2, type3])] += 1
                     cluster_counter[7] += 1
-            for atom3_index in atom2.third_nearest_neighbor_list:
-                type3 = config.atom_list[atom3_index].elem_type
-                if atom3_index in atom1.third_nearest_neighbor_list:
-                    # 8 first third third triplet
-                    cluster_hashmap[Cluster(8, [type1, type2, type3])] += 1
-                    cluster_counter[8] += 1
+            # for atom3_index in atom2.third_nearest_neighbor_list:
+            #     type3 = config.atom_list[atom3_index].elem_type
+            #     if atom3_index in atom1.third_nearest_neighbor_list:
+            #         # 8 first third third triplet
+            #         cluster_hashmap[Cluster(8, [type1, type2, type3])] += 1
+            #         cluster_counter[8] += 1
         for atom2_index in atom1.second_nearest_neighbor_list:
             atom2 = config.atom_list[atom2_index]
             type2 = atom2.elem_type
             # 2 second pair
             cluster_hashmap[Cluster(2, [type1, type2])] += 1
             cluster_counter[2] += 1
-            for atom3_index in atom2.third_nearest_neighbor_list:
-                type3 = config.atom_list[atom3_index].elem_type
-                if atom3_index in atom1.third_nearest_neighbor_list:
-                    # 9 second third third triplet
-                    cluster_hashmap[Cluster(9, [type1, type2, type3])] += 1
-                    cluster_counter[9] += 1
+            # for atom3_index in atom2.third_nearest_neighbor_list:
+            #     type3 = config.atom_list[atom3_index].elem_type
+            #     if atom3_index in atom1.third_nearest_neighbor_list:
+            #         # 9 second third third triplet
+            #         cluster_hashmap[Cluster(9, [type1, type2, type3])] += 1
+            #         cluster_counter[9] += 1
         for atom2_index in atom1.third_nearest_neighbor_list:
             atom2 = config.atom_list[atom2_index]
             type2 = atom2.elem_type
             # 3 third pair
             cluster_hashmap[Cluster(3, [type1, type2])] += 1
             cluster_counter[3] += 1
-            for atom3_index in atom2.third_nearest_neighbor_list:
-                type3 = config.atom_list[atom3_index].elem_type
-                if atom3_index in atom1.third_nearest_neighbor_list:
-                    # 10 third third third triplet
-                    cluster_hashmap[Cluster(10, [type1, type2, type3])] += 1
-                    cluster_counter[10] += 1
+            # for atom3_index in atom2.third_nearest_neighbor_list:
+            #     type3 = config.atom_list[atom3_index].elem_type
+            #     if atom3_index in atom1.third_nearest_neighbor_list:
+            #         # 10 third third third triplet
+            #         cluster_hashmap[Cluster(10, [type1, type2, type3])] += 1
+            #         cluster_counter[10] += 1
     cluster_hashmap = OrderedDict(sorted(cluster_hashmap.items(), key=lambda it: it[0]))
     res = []
     for cluster in cluster_hashmap:

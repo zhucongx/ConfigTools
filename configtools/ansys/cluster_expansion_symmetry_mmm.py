@@ -29,10 +29,10 @@ class Cluster(object):
                 return True
             if diff_norm > K_EPSILON:
                 return False
-            diff_x = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
-            if diff_x < - K_EPSILON:
+            diff_x_sym = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
+            if diff_x_sym < - K_EPSILON:
                 return True
-            if diff_x > K_EPSILON:
+            if diff_x_sym > K_EPSILON:
                 return False
             diff_x = relative_position_lhs[0] - relative_position_rhs[0]
             if diff_x < - K_EPSILON:
@@ -45,25 +45,16 @@ class Cluster(object):
             if diff_y > K_EPSILON:
                 return False
             diff_z = relative_position_lhs[2] - relative_position_rhs[2]
-            if diff_z < - K_EPSILON:
-                return True
-            if diff_z > K_EPSILON:
-                return False
-            return lhs.atom_id < rhs.atom_id
+            return diff_z < - K_EPSILON
 
         Atom.__lt__ = lambda this, other: _position_sort(this, other)
         self._atom_list.sort()
 
-    def __eq__(self, other):
-        for atom1, atom2 in zip(self.atom_list, other.atom_list):
-            if atom1.atom_id != atom2.atom_id:
-                return False
-        return True
-
-    def __hash__(self):
-        atom_id_list = [atom.atom_id for atom in self._atom_list]
-        the_hash = hash(tuple(atom_id_list))
-        return the_hash
+        self._symmetry_label = False
+        if len(self._atom_list) == 2:
+            if not (_is_atom_smaller_symmetrically(self._atom_list[0], self._atom_list[1])) and not (
+                    _is_atom_smaller_symmetrically(self._atom_list[1], self._atom_list[0])):
+                self._symmetry_label = True
 
     @property
     def atom_list(self) -> typing.List[Atom]:
@@ -80,6 +71,10 @@ class Cluster(object):
     def size(self) -> int:
         return len(self._atom_list)
 
+    @property
+    def symmetry_label(self):
+        return self._symmetry_label
+
 
 def _is_atom_smaller_symmetrically(lhs: Atom, rhs: Atom) -> bool:
     relative_position_lhs = lhs.relative_position
@@ -90,36 +85,21 @@ def _is_atom_smaller_symmetrically(lhs: Atom, rhs: Atom) -> bool:
         return True
     if diff_norm > K_EPSILON:
         return False
-    # diff_x = relative_position_lhs[0] - relative_position_rhs[0]
-    diff_x = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
-    return diff_x < - K_EPSILON
-
-
-def _atom_sort(lhs: Atom, rhs: Atom) -> bool:
-    if _is_atom_smaller_symmetrically(lhs, rhs):
-        return True
-    if _is_atom_smaller_symmetrically(rhs, lhs):
-        return False
-    relative_position_lhs = lhs.relative_position
-    relative_position_rhs = rhs.relative_position
-    diff_x = relative_position_lhs[0] - relative_position_rhs[0]
-    if diff_x < - K_EPSILON:
-        return True
-    if diff_x > K_EPSILON:
-        return False
-    diff_y = relative_position_lhs[1] - relative_position_rhs[1]
-    if diff_y < - K_EPSILON:
-        return True
-    if diff_y > K_EPSILON:
-        return False
-    return relative_position_lhs[2] < relative_position_rhs[2] - K_EPSILON
+    diff_x_sym = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
+    return diff_x_sym < - K_EPSILON
 
 
 def _is_cluster_smaller_symmetrically(lhs: Cluster, rhs: Cluster) -> bool:
-    for atom1, atom2 in zip(lhs.atom_list, rhs.atom_list):
-        if _is_atom_smaller_symmetrically(atom1, atom2):
+    if lhs.size == 1:
+        return _is_atom_smaller_symmetrically(lhs.atom_list[0], rhs.atom_list[0])
+    if lhs.size == 2:
+        if _is_atom_smaller_symmetrically(lhs.atom_list[0], rhs.atom_list[0]):
             return True
-        if _is_atom_smaller_symmetrically(atom2, atom1):
+        if _is_atom_smaller_symmetrically(rhs.atom_list[0], lhs.atom_list[0]):
+            return False
+        if _is_atom_smaller_symmetrically(lhs.atom_list[1], rhs.atom_list[1]):
+            return True
+        if _is_atom_smaller_symmetrically(rhs.atom_list[1], lhs.atom_list[1]):
             return False
     # if it reaches here, it means that the clusters are same symmetrically.Returns false.
     return False
@@ -150,10 +130,10 @@ def _rotate_atom_vector_and_sort_helper(atom_list: typing.List[Atom], reference_
             return True
         if diff_norm > K_EPSILON:
             return False
-        diff_x = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
-        if diff_x < - K_EPSILON:
+        diff_x_sym = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
+        if diff_x_sym < - K_EPSILON:
             return True
-        if diff_x > K_EPSILON:
+        if diff_x_sym > K_EPSILON:
             return False
         diff_x = relative_position_lhs[0] - relative_position_rhs[0]
         if diff_x < - K_EPSILON:
@@ -166,11 +146,7 @@ def _rotate_atom_vector_and_sort_helper(atom_list: typing.List[Atom], reference_
         if diff_y > K_EPSILON:
             return False
         diff_z = relative_position_lhs[2] - relative_position_rhs[2]
-        if diff_z < - K_EPSILON:
-            return True
-        if diff_z > K_EPSILON:
-            return False
-        return lhs.atom_id < rhs.atom_id
+        return diff_z < - K_EPSILON
 
     Atom.__lt__ = lambda self, other: _position_sort(self, other)
     atom_list.sort()
@@ -198,8 +174,6 @@ def _get_symmetrically_sorted_atom_vectors(config: cfg.Config, jump_pair: typing
     atom_id_set = cfg.get_neighbors_set_of_jump_pair(config, jump_pair)
     move_distance = np.full((3,), 0.5) - cfg.get_pair_center(config, jump_pair)
     atom_list_forward: typing.List[Atom] = list()
-    vacancy_relative_position = np.zeros(3)
-    vacancy_cartesian_position = np.zeros(3)
 
     for atom_id in atom_id_set:
         atom = copy.deepcopy(config.atom_list[atom_id])
@@ -209,16 +183,12 @@ def _get_symmetrically_sorted_atom_vectors(config: cfg.Config, jump_pair: typing
         relative_position -= np.floor(relative_position)
         atom.relative_position = relative_position
         if atom.atom_id == jump_pair[0]:
-            vacancy_cartesian_position = atom.cartesian_position
-            vacancy_relative_position = atom.relative_position
+            continue
+        if atom.atom_id == jump_pair[1]:
             continue
         atom_list_forward.append(atom)
 
     atom_list_backward = copy.deepcopy(atom_list_forward)
-    for i, atom in enumerate(atom_list_backward):
-        if atom.atom_id == jump_pair[1]:
-            atom_list_backward[i].relative_position = vacancy_relative_position
-            atom_list_backward[i].cartesian_position = vacancy_cartesian_position
 
     return _rotate_atom_vector_and_sort_helper(atom_list_forward, config, jump_pair), \
            _rotate_atom_vector_and_sort_helper(atom_list_backward, config, jump_pair[::-1])
@@ -257,7 +227,10 @@ def _get_average_parameters_mapping_from_cluster_vector_helper(
         cluster_index_vector: typing.List[typing.List[int]] = list()
         for index in range(lower_bound, upper_bound):
             cluster_index: typing.List[int] = list()
-            for atom in cluster_list[index].atom_list:
+            cluster = cluster_list[index]
+            if cluster.symmetry_label:
+                cluster_index.append(-1)
+            for atom in cluster.atom_list:
                 cluster_index.append(atom.atom_id)
             cluster_index_vector.append(cluster_index)
         cluster_mapping.append(cluster_index_vector)
@@ -283,14 +256,15 @@ def get_average_cluster_parameters_mapping_symmetry(config: cfg.Config) -> typin
     first_pair_set: typing.Set[Cluster] = set()
     second_pair_set: typing.Set[Cluster] = set()
     third_pair_set: typing.Set[Cluster] = set()
-    for atom1 in atom_vector:
-        for atom2_index in atom1.first_nearest_neighbor_list:
-            first_pair_set.add(Cluster(atom1, atom_vector[atom2_index]))
-        for atom2_index in atom1.second_nearest_neighbor_list:
-            second_pair_set.add(Cluster(atom1, atom_vector[atom2_index]))
-        for atom2_index in atom1.third_nearest_neighbor_list:
-            third_pair_set.add(Cluster(atom1, atom_vector[atom2_index]))
-
+    for index1 in range(len(atom_vector)):
+        for index2 in range(index1):
+            t = cfg.get_bond_length_type_between(atom_vector[index1], atom_vector[index2])
+            if t == 1:
+                first_pair_set.add(Cluster(atom_vector[index1], atom_vector[index2]))
+            elif t == 2:
+                second_pair_set.add(Cluster(atom_vector[index1], atom_vector[index2]))
+            elif t == 3:
+                third_pair_set.add(Cluster(atom_vector[index1], atom_vector[index2]))
     _get_average_parameters_mapping_from_cluster_vector_helper(list(first_pair_set), cluster_mapping)
     _get_average_parameters_mapping_from_cluster_vector_helper(list(second_pair_set), cluster_mapping)
     _get_average_parameters_mapping_from_cluster_vector_helper(list(third_pair_set), cluster_mapping)
@@ -342,11 +316,25 @@ def get_one_hot_encoding_list_forward_and_backward_from_mapping(
     for atom_vector in atom_vectors:
         encode_list: typing.List[float] = list()
         for cluster_vector in cluster_mapping:
-            sum_of_list = [0.0] * (len(type_set) ** len(cluster_vector[0]))
+            if cluster_vector[0][0] == -1:
+                num_elements = len(type_set)
+                select_num = len(cluster_vector[0]) - 1
+                sum_of_list = [0.0] * int(np.math.factorial(
+                    num_elements + select_num - 1) / np.math.factorial(
+                    num_elements - 1) / np.math.factorial(select_num))
+            else:
+                sum_of_list = [0.0] * (len(type_set) ** len(cluster_vector[0]))
             for cluster in cluster_vector:
-                cluster_type_key = ""
-                for atom_index in cluster:
-                    cluster_type_key += atom_vector[atom_index].elem_type
+                cluster_type_keys = []
+                if cluster[0] == -1:
+                    for atom_index in cluster[1:]:
+                        cluster_type_keys.append(atom_vector[atom_index].elem_type)
+                    cluster_type_keys.sort()
+                    cluster_type_key = "-".join(cluster_type_keys)
+                else:
+                    for atom_index in cluster:
+                        cluster_type_keys.append(atom_vector[atom_index].elem_type)
+                    cluster_type_key = "".join(cluster_type_keys)
                 element_wise_add_second_to_first(sum_of_list, one_hot_encode_dict[cluster_type_key])
             element_wise_divide_float_from_list(sum_of_list, float(len(cluster_vector)))
             encode_list = encode_list + sum_of_list
@@ -355,15 +343,70 @@ def get_one_hot_encoding_list_forward_and_backward_from_mapping(
 
 
 if __name__ == "__main__":
-    config11 = cfg.read_config("../../test/test_files/forward.cfg")
-    cl_mapping = get_average_cluster_parameters_mapping_symmetry(config11)
-    forward, backward = get_one_hot_encoding_list_forward_and_backward_from_mapping(
-        config11, (18, 23), {"Al", "Mg", "Zn"}, cl_mapping)
+    configm = cfg.read_config("../../test/test_files/mapping.cfg")
+    configf = cfg.read_config("../../test/test_files/forward.cfg")
+    configb = cfg.read_config("../../test/test_files/backward.cfg")
+
+    cl_mapping = get_average_cluster_parameters_mapping_symmetry(configm)
+    cl_mapping1 = get_average_cluster_parameters_mapping_symmetry(configf)
+    cl_mapping2 = get_average_cluster_parameters_mapping_symmetry(configb)
+    # for i in cl_mapping2:
+    #     print(i)
+    # for i in cl_mapping2:
+    #     print(i)
+    forward1, backward1 = get_one_hot_encoding_list_forward_and_backward_from_mapping(
+        configf, (18, 23), {"Al", "Mg", "Zn"}, cl_mapping1)
+    forward2, backward2 = get_one_hot_encoding_list_forward_and_backward_from_mapping(
+        configb, (23, 18), {"Al", "Mg", "Zn"}, cl_mapping2)
+    print(forward1)
+    print(backward1)
+    print(forward2)
+    print(backward2)
     # for i in cl_mapping:
-    #     i.sort()
+    #     print(i)
+    # print(len(forward1))
+
+    # index_map = {
+    #     -1: -1,
+    #
+    #     0: 11,
+    #     1: 8,
+    #     2: 10,
+    #     3: 9,
+    #
+    #     4: 12,
+    #     5: 13,
+    #
+    #     6: 6,
+    #     7: 7,
+    #
+    #     8: 17,
+    #     9: 14,
+    #     10: 16,
+    #     11: 15,
+    #
+    #     12: 5,
+    #     13: 2,
+    #     14: 4,
+    #     15: 3,
+    #
+    #     16: 18,
+    #     17: 1,
+    # }
+    # cl = []
+    # for i in cl_mapping1:
+    #     lli = []
     #     for j in i:
-    #         print(j)
-    print(len(forward))
+    #         li = []
+    #         for k in j:
+    #             li.append(index_map[k])
+    #         # li.sort()
+    #         lli.append(li)
+    #     cl.append(lli)
+    #     lli.sort()
+    #     print(lli)
+
+
 # cfg11 = get_symmetrically_sorted_configs(config11, (18, 23))
 # for atom in cfg11[0].atom_list:
 #     print((np.linalg.norm(atom.relative_position[1:] - np.full((2,), 0.5)),
