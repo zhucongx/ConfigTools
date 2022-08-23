@@ -72,7 +72,7 @@ def build_pd_file(element_set: typing.Set[str], path, out_put_destination):
 
         cluster_expansion_start, cluster_expansion_end, \
         cluster_expansion_forward, cluster_expansion_backward, \
-        cluster_expansion_transition = ce.get_encodes(config_start, config_end, jump_pair, element_set)
+            = ce.get_encodes(config_start, config_end, jump_pair, element_set)
 
         data[ct] = [i, migration_atom, migration_system, barriers[0], barriers[0] - barriers[1],
                     0.5 * (barriers[0] + barriers[1]), ground_energies[0], ground_energies[1],
@@ -83,7 +83,7 @@ def build_pd_file(element_set: typing.Set[str], path, out_put_destination):
                     bond_change_forward, bond_change_backward,
                     cluster_expansion_start, cluster_expansion_end,
                     cluster_expansion_forward, cluster_expansion_backward,
-                    cluster_expansion_transition,
+                    # cluster_expansion_transition,
                     distance_list, energy_list]
         ct += 1
         data[ct] = [i, migration_atom, migration_system, barriers[1], barriers[1] - barriers[0],
@@ -95,7 +95,7 @@ def build_pd_file(element_set: typing.Set[str], path, out_put_destination):
                     bond_change_backward, bond_change_forward,
                     cluster_expansion_end, cluster_expansion_start,
                     cluster_expansion_backward, cluster_expansion_forward,
-                    cluster_expansion_transition,
+                    # cluster_expansion_transition,
                     distance_list_back, energy_list_back]
         ct += 1
 
@@ -111,7 +111,7 @@ def build_pd_file(element_set: typing.Set[str], path, out_put_destination):
                  "bond_change_encode_forward", "bond_change_encode_backward",
                  "cluster_expansion_start", "cluster_expansion_end",
                  "cluster_expansion_forward", "cluster_expansion_backward",
-                 "cluster_expansion_transition",
+                 # "cluster_expansion_transition",
                  "distance_list", "energy_list"])
     df.to_pickle(out_put_destination, compression='gzip')
 

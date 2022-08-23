@@ -235,22 +235,22 @@ def get_encode_of_config_old(config: Config, type_set: typing.Set[str]):
 def get_encodes(config_start: Config, config_end: Config, jump_pair: typing.Tuple[int, int],
                 type_set: typing.Set[str]):
     migration_type = config_start.atom_list[jump_pair[1]].elem_type
-    _type_set = copy.copy(type_set)
-    _type_set.add("X")
-    _type_set.add("p" + migration_type)
-    cluster_expansion_start = get_encode_of_config_old(config_start, _type_set)
-    cluster_expansion_end = get_encode_of_config_old(config_end, _type_set)
+    _type_set1 = copy.copy(type_set)
+    _type_set1.add("X")
+    cluster_expansion_start = get_encode_of_config_old(config_start, _type_set1)
+    cluster_expansion_end = get_encode_of_config_old(config_end, _type_set1)
+    # _type_set2 = copy.copy(type_set)
+    # _type_set2.add("p" + migration_type)
     cluster_expansion_forward, cluster_expansion_backward = [], []
     for x, y in zip(cluster_expansion_start, cluster_expansion_end):
         cluster_expansion_forward.append(y - x)
         cluster_expansion_backward.append(x - y)
-    config_transition = copy.copy(config_start)
-    config_transition.atom_list[jump_pair[0]].elem_type = "p" + migration_type
-    config_transition.atom_list[jump_pair[1]].elem_type = "p" + migration_type
-    cluster_expansion_transition = get_encode_of_config_old(config_transition, _type_set)
+    # config_transition = copy.copy(config_start)
+    # config_transition.atom_list[jump_pair[0]].elem_type = "p" + migration_type
+    # config_transition.atom_list[jump_pair[1]].elem_type = "p" + migration_type
+    # cluster_expansion_transition = get_encode_of_config_old(config_transition, _type_set2)
     return cluster_expansion_start, cluster_expansion_end, \
-           cluster_expansion_forward, cluster_expansion_backward, \
-           cluster_expansion_transition
+           cluster_expansion_forward, cluster_expansion_backward
 
 
 if __name__ == "__main__":
@@ -261,7 +261,7 @@ if __name__ == "__main__":
     # print(len(aa))
     conf_s = read_config("../../test/test_files/forward.cfg")
     conf_e = read_config("../../test/test_files/backward.cfg")
-    aaa = get_encodes(conf_s, conf_e, (18, 23), {"Al", "Mg", "Zn", "Sn"})
+    aaa = get_encodes(conf_s, conf_e, (18, 23), {"Al", "Mg", "Zn"})
     for a in aaa:
         print(len(a))
     print(aaa[0])
