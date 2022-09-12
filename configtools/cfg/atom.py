@@ -21,7 +21,7 @@ class Atom(object):
         self._atom_id = atom_id
         self._mass = mass
         self._elem_type = elem_type
-        self._relative_position = np.array([x, y, z])
+        self._fractional_position = np.array([x, y, z])
         self._cartesian_position = np.array([x, y, z])
         self._first_nearest_neighbor_list: typing.List[int] = list()
         self._second_nearest_neighbor_list: typing.List[int] = list()
@@ -36,8 +36,8 @@ class Atom(object):
         return self._cartesian_position
 
     @property
-    def relative_position(self) -> np.ndarray:
-        return self._relative_position
+    def fractional_position(self) -> np.ndarray:
+        return self._fractional_position
 
     @property
     def atom_id(self) -> int:
@@ -79,11 +79,11 @@ class Atom(object):
     def seventh_nearest_neighbor_list(self) -> typing.List[int]:
         return self._seventh_nearest_neighbor_list
 
-    @relative_position.setter
-    def relative_position(self, position: np.ndarray):
+    @fractional_position.setter
+    def fractional_position(self, position: np.ndarray):
         if position.shape != (3,):
             raise RuntimeError(f"input position size is not (3,) but {position.shape}")
-        self._relative_position = position
+        self._fractional_position = position
 
     @cartesian_position.setter
     def cartesian_position(self, position: np.ndarray):
@@ -161,31 +161,31 @@ class Atom(object):
         return f"<{self._atom_id}, {self.elem_type}>"
 
 
-def get_average_relative_position_atom(atom1: Atom, atom2: Atom) -> Atom:
+def get_average_fractional_position_atom(atom1: Atom, atom2: Atom) -> Atom:
     if atom1.elem_type != atom2.elem_type:
         raise RuntimeError(f"types do not match")
     if atom1.atom_id != atom2.atom_id:
         raise RuntimeError(f"atom ID do not match, {atom1.atom_id}, {atom2.atom_id}")
-    relative_distance_vector = get_relative_distance_vector(atom1, atom2)
-    atom1_relative_position = atom1.relative_position
-    res_relative_position = 0.5 * relative_distance_vector + atom1_relative_position
+    fractional_distance_vector = get_fractional_distance_vector(atom1, atom2)
+    atom1_fractional_position = atom1.fractional_position
+    res_fractional_position = 0.5 * fractional_distance_vector + atom1_fractional_position
     for i in range(3):
-        while res_relative_position[i] >= 1:
-            res_relative_position[i] -= 1
-        while res_relative_position[i] < 0:
-            res_relative_position[i] += 1
-    x, y, z = res_relative_position
+        while res_fractional_position[i] >= 1:
+            res_fractional_position[i] -= 1
+        while res_fractional_position[i] < 0:
+            res_fractional_position[i] += 1
+    x, y, z = res_fractional_position
     return Atom(atom1.atom_id, atom1.mass, atom1.elem_type, x, y, z)
 
 
-def get_relative_distance_vector(atom1: Atom, atom2: Atom) -> np.ndarray:
-    relative_distance_vector = atom2.relative_position - atom1.relative_position
+def get_fractional_distance_vector(atom1: Atom, atom2: Atom) -> np.ndarray:
+    fractional_distance_vector = atom2.fractional_position - atom1.fractional_position
     for i in range(3):
-        while relative_distance_vector[i] >= 0.5:
-            relative_distance_vector[i] -= 1
-        while relative_distance_vector[i] < -0.5:
-            relative_distance_vector[i] += 1
-    return relative_distance_vector
+        while fractional_distance_vector[i] >= 0.5:
+            fractional_distance_vector[i] -= 1
+        while fractional_distance_vector[i] < -0.5:
+            fractional_distance_vector[i] += 1
+    return fractional_distance_vector
 
 
 def get_bond_length_type_between(atom1: Atom, atom2: Atom) -> int:

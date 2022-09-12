@@ -19,32 +19,32 @@ class Cluster(object):
                 print("type X..!!!")
             self._atom_list.append(copy.deepcopy(insert_atom))
 
-        # self._atom_list.sort(key=lambda sort_atom: sort_atom.relative_position.tolist())
+        # self._atom_list.sort(key=lambda sort_atom: sort_atom.fractional_position.tolist())
         def _position_sort(lhs: Atom, rhs: Atom) -> bool:
-            relative_position_lhs = lhs.relative_position
-            relative_position_rhs = rhs.relative_position
-            diff_norm = np.linalg.norm(relative_position_lhs - np.full((3,), 0.5)) - \
-                        np.linalg.norm(relative_position_rhs - np.full((3,), 0.5))
+            fractional_position_lhs = lhs.fractional_position
+            fractional_position_rhs = rhs.fractional_position
+            diff_norm = np.linalg.norm(fractional_position_lhs - np.full((3,), 0.5)) - \
+                        np.linalg.norm(fractional_position_rhs - np.full((3,), 0.5))
             if diff_norm < - K_EPSILON:
                 return True
             if diff_norm > K_EPSILON:
                 return False
-            diff_x_sym = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
+            diff_x_sym = abs(fractional_position_lhs[0] - 0.5) - abs(fractional_position_rhs[0] - 0.5)
             if diff_x_sym < - K_EPSILON:
                 return True
             if diff_x_sym > K_EPSILON:
                 return False
-            diff_x = relative_position_lhs[0] - relative_position_rhs[0]
+            diff_x = fractional_position_lhs[0] - fractional_position_rhs[0]
             if diff_x < - K_EPSILON:
                 return True
             if diff_x > K_EPSILON:
                 return False
-            diff_y = relative_position_lhs[1] - relative_position_rhs[1]
+            diff_y = fractional_position_lhs[1] - fractional_position_rhs[1]
             if diff_y < - K_EPSILON:
                 return True
             if diff_y > K_EPSILON:
                 return False
-            diff_z = relative_position_lhs[2] - relative_position_rhs[2]
+            diff_z = fractional_position_lhs[2] - fractional_position_rhs[2]
             return diff_z < - K_EPSILON
 
         Atom.__lt__ = lambda this, other: _position_sort(this, other)
@@ -77,15 +77,15 @@ class Cluster(object):
 
 
 def _is_atom_smaller_symmetrically(lhs: Atom, rhs: Atom) -> bool:
-    relative_position_lhs = lhs.relative_position
-    relative_position_rhs = rhs.relative_position
-    diff_norm = np.linalg.norm(relative_position_lhs - np.full((3,), 0.5)) - \
-                np.linalg.norm(relative_position_rhs - np.full((3,), 0.5))
+    fractional_position_lhs = lhs.fractional_position
+    fractional_position_rhs = rhs.fractional_position
+    diff_norm = np.linalg.norm(fractional_position_lhs - np.full((3,), 0.5)) - \
+                np.linalg.norm(fractional_position_rhs - np.full((3,), 0.5))
     if diff_norm < - K_EPSILON:
         return True
     if diff_norm > K_EPSILON:
         return False
-    diff_x_sym = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
+    diff_x_sym = abs(fractional_position_lhs[0] - 0.5) - abs(fractional_position_rhs[0] - 0.5)
     return diff_x_sym < - K_EPSILON
 
 
@@ -122,30 +122,30 @@ def _rotate_atom_vector_and_sort_helper(atom_list: typing.List[Atom], reference_
     cfg.rotate_atom_vector(atom_list, cfg.get_pair_rotation_matrix(reference_config, jump_pair))
 
     def _position_sort(lhs: Atom, rhs: Atom) -> bool:
-        relative_position_lhs = lhs.relative_position
-        relative_position_rhs = rhs.relative_position
-        diff_norm = np.linalg.norm(relative_position_lhs - np.full((3,), 0.5)) - \
-                    np.linalg.norm(relative_position_rhs - np.full((3,), 0.5))
+        fractional_position_lhs = lhs.fractional_position
+        fractional_position_rhs = rhs.fractional_position
+        diff_norm = np.linalg.norm(fractional_position_lhs - np.full((3,), 0.5)) - \
+                    np.linalg.norm(fractional_position_rhs - np.full((3,), 0.5))
         if diff_norm < - K_EPSILON:
             return True
         if diff_norm > K_EPSILON:
             return False
-        diff_x_sym = abs(relative_position_lhs[0] - 0.5) - abs(relative_position_rhs[0] - 0.5)
+        diff_x_sym = abs(fractional_position_lhs[0] - 0.5) - abs(fractional_position_rhs[0] - 0.5)
         if diff_x_sym < - K_EPSILON:
             return True
         if diff_x_sym > K_EPSILON:
             return False
-        diff_x = relative_position_lhs[0] - relative_position_rhs[0]
+        diff_x = fractional_position_lhs[0] - fractional_position_rhs[0]
         if diff_x < - K_EPSILON:
             return True
         if diff_x > K_EPSILON:
             return False
-        diff_y = relative_position_lhs[1] - relative_position_rhs[1]
+        diff_y = fractional_position_lhs[1] - fractional_position_rhs[1]
         if diff_y < - K_EPSILON:
             return True
         if diff_y > K_EPSILON:
             return False
-        diff_z = relative_position_lhs[2] - relative_position_rhs[2]
+        diff_z = fractional_position_lhs[2] - fractional_position_rhs[2]
         return diff_z < - K_EPSILON
 
     Atom.__lt__ = lambda self, other: _position_sort(self, other)
@@ -178,10 +178,10 @@ def _get_symmetrically_sorted_atom_vectors(config: cfg.Config, jump_pair: typing
     for atom_id in atom_id_set:
         atom = copy.deepcopy(config.atom_list[atom_id])
         atom.clean_neighbors_lists()
-        relative_position = atom.relative_position
-        relative_position += move_distance
-        relative_position -= np.floor(relative_position)
-        atom.relative_position = relative_position
+        fractional_position = atom.fractional_position
+        fractional_position += move_distance
+        fractional_position -= np.floor(fractional_position)
+        atom.fractional_position = fractional_position
         if atom.atom_id == jump_pair[0]:
             continue
         if atom.atom_id == jump_pair[1]:
@@ -409,5 +409,5 @@ if __name__ == "__main__":
 
 # cfg11 = get_symmetrically_sorted_configs(config11, (18, 23))
 # for atom in cfg11[0].atom_list:
-#     print((np.linalg.norm(atom.relative_position[1:] - np.full((2,), 0.5)),
-#           np.linalg.norm(atom.relative_position - np.full((3,), 0.5))))
+#     print((np.linalg.norm(atom.fractional_position[1:] - np.full((2,), 0.5)),
+#           np.linalg.norm(atom.fractional_position - np.full((3,), 0.5))))

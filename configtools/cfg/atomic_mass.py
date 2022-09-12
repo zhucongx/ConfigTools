@@ -3578,7 +3578,7 @@ atomic_mass_dict = {
 def get_atomic_mass(term: typing.Union[int, str]) -> float:
     """
     Returns the average standard atomic weight for an element or
-    the relative atomic mass for an isotope.
+    the fractional atomic mass for an isotope.
     Elements can be specified using atomic numbers or symbols.
     Isotopes are specified using symbols followed by -#, where # is the mass
     number (eg. "He-3") Deuterium and tritium can alternatively be specified

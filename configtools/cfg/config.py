@@ -1,5 +1,5 @@
 from configtools.cfg.constants import *
-from configtools.cfg.atom import Atom, get_average_relative_position_atom, get_relative_distance_vector
+from configtools.cfg.atom import Atom, get_average_fractional_position_atom, get_fractional_distance_vector
 from configtools.cfg.atomic_mass import get_atomic_mass
 from collections import OrderedDict
 import typing
@@ -42,27 +42,27 @@ class Config(object):
             basis = np.array(basis, dtype=np.float64)
         self._basis = basis
 
-    def convert_relative_to_cartesian(self) -> None:
+    def convert_fractional_to_cartesian(self) -> None:
         for i, atom in enumerate(self._atom_list):
-            self._atom_list[i].cartesian_position = atom.relative_position.dot(self._basis)
+            self._atom_list[i].cartesian_position = atom.fractional_position.dot(self._basis)
 
-    def convert_cartesian_to_relative(self) -> None:
+    def convert_cartesian_to_fractional(self) -> None:
         inverse_basis = np.linalg.inv(self._basis)
         for i, atom in enumerate(self._atom_list):
-            self._atom_list[i].relative_position = atom.cartesian_position.dot(inverse_basis)
+            self._atom_list[i].fractional_position = atom.cartesian_position.dot(inverse_basis)
 
     def perturb(self) -> None:
         inverse_basis = np.linalg.inv(self._basis)
         for i, atom in enumerate(self._atom_list):
-            self._atom_list[i].relative_position = (atom.cartesian_position + np.random.normal(0, 0.1, 3)).dot(
+            self._atom_list[i].fractional_position = (atom.cartesian_position + np.random.normal(0, 0.1, 3)).dot(
                 inverse_basis)
 
     def warp_at_periodic_boundaries(self) -> None:
         for i, atom in enumerate(self._atom_list):
-            relative_position = atom.relative_position
-            relative_position -= np.floor(relative_position)
-            self._atom_list[i].relative_position = relative_position
-        self.convert_relative_to_cartesian()
+            fractional_position = atom.fractional_position
+            fractional_position -= np.floor(fractional_position)
+            self._atom_list[i].fractional_position = fractional_position
+        self.convert_fractional_to_cartesian()
 
     def clear_neighbors(self) -> None:
         for atom in self._atom_list:
@@ -80,9 +80,9 @@ class Config(object):
     def update_neighbors(self) -> None:
         for i in range(self.number_atoms):
             for j in range(i):
-                relative_distance_vector = get_relative_distance_vector(self._atom_list[i],
+                fractional_distance_vector = get_fractional_distance_vector(self._atom_list[i],
                                                                         self._atom_list[j])
-                absolute_distance_vector = relative_distance_vector.dot(self._basis)
+                absolute_distance_vector = fractional_distance_vector.dot(self._basis)
 
                 if abs(absolute_distance_vector[0]) > SEVENTH_NEAREST_NEIGHBORS_CUTOFF:
                     continue
@@ -190,7 +190,7 @@ def write_config(config: Config, filename: str, neighbors_info: bool = True) -> 
     content += ".NO_VELOCITY.\nentry_count = 3\n"
     for atom in config.atom_list:
         content += str(atom.mass) + "\n" + atom.elem_type + "\n"
-        content += np.array2string(atom.relative_position, formatter={"float_kind": lambda x: "%.16f" % x})[1:-1]
+        content += np.array2string(atom.fractional_position, formatter={"float_kind": lambda x: "%.16f" % x})[1:-1]
         if neighbors_info:
             content += " # "
             content += "".join(
@@ -219,10 +219,10 @@ def read_poscar(filename: str, update_neighbors: bool = True) -> Config:
     elem_numbers_list = [int(i) for i in elem_numbers_list]
 
     if content_list[7][0] in "Ss":
-        relative_option = content_list[8][0] in "Dd"
+        fractional_option = content_list[8][0] in "Dd"
         data_begin_index = 9
     else:
-        relative_option = content_list[7][0] in "Dd"
+        fractional_option = content_list[7][0] in "Dd"
         data_begin_index = 8
 
     atom_list: typing.List[Atom] = list()
@@ -236,10 +236,10 @@ def read_poscar(filename: str, update_neighbors: bool = True) -> Config:
             id_count += 1
 
     config = Config(basis, atom_list)
-    if relative_option:
-        config.convert_relative_to_cartesian()
+    if fractional_option:
+        config.convert_fractional_to_cartesian()
     else:
-        config.convert_cartesian_to_relative()
+        config.convert_cartesian_to_fractional()
     config.warp_at_periodic_boundaries()
 
     if update_neighbors:
@@ -269,7 +269,7 @@ def write_poscar(config: Config, filename: str) -> None:
         if element == "X":
             continue
         for index in element_list:
-            content += np.array2string(config.atom_list[int(index)].relative_position,
+            content += np.array2string(config.atom_list[int(index)].fractional_position,
                                        formatter={"float_kind": lambda x: "%.16f" % x})[1:-1] + "\n"
     with open(filename, "w") as f:
         f.write(content)
@@ -284,9 +284,9 @@ def get_average_position_config(config1: Config, config2: Config) -> Config:
     config2.clear_neighbors()
     atom_list: typing.List[Atom] = list()
     for atom1, atom2 in zip(config1.atom_list, config2.atom_list):
-        atom_list.append(get_average_relative_position_atom(atom1, atom2))
+        atom_list.append(get_average_fractional_position_atom(atom1, atom2))
     res = Config(config1.basis, atom_list)
-    res.convert_relative_to_cartesian()
+    res.convert_fractional_to_cartesian()
     return res
 
 
@@ -294,16 +294,16 @@ def get_pair_center(config: Config, jump_pair: typing.Tuple[int, int]) -> np.nda
     first, second = jump_pair
     center_position = np.zeros(3)
     for kDim in range(3):
-        first_relative: float = config.atom_list[first].relative_position[kDim]
-        second_relative: float = config.atom_list[second].relative_position[kDim]
-        distance: float = first_relative - second_relative
+        first_fractional: float = config.atom_list[first].fractional_position[kDim]
+        second_fractional: float = config.atom_list[second].fractional_position[kDim]
+        distance: float = first_fractional - second_fractional
         period: int = int(distance / 0.5)
         # make sure distance is in the range (0, 0.5)
         while period != 0:
-            first_relative -= float(period)
-            distance = first_relative - second_relative
+            first_fractional -= float(period)
+            distance = first_fractional - second_fractional
             period = int(distance / 0.5)
-        center_position[kDim] = 0.5 * (first_relative + second_relative)
+        center_position[kDim] = 0.5 * (first_fractional + second_fractional)
     return center_position
 
 
@@ -311,12 +311,12 @@ def get_pair_rotation_matrix(config: Config, jump_pair: typing.Tuple[int, int]) 
     first, second = jump_pair
     first_atom: Atom = config.atom_list[first]
 
-    pair_direction = get_relative_distance_vector(first_atom, config.atom_list[second])
+    pair_direction = get_fractional_distance_vector(first_atom, config.atom_list[second])
     logging.debug(f"{pair_direction}")
     pair_direction /= np.linalg.norm(pair_direction)
     vertical_vector = np.zeros(3)
     for index in first_atom.first_nearest_neighbor_list:
-        jump_vector = get_relative_distance_vector(first_atom, config.atom_list[index])
+        jump_vector = get_fractional_distance_vector(first_atom, config.atom_list[index])
         # to exam if jump_vector and pair_direction perpendicular
         dot_prod = np.dot(jump_vector, pair_direction)
         if abs(dot_prod) < 1e-6:
@@ -385,12 +385,12 @@ def rotate_atom_vector(atom_list: typing.List[Atom], rotation_matrix: np.ndarray
     move_distance_after_rotation = np.full((3,), 0.5) - np.full((3,), 0.5).dot(rotation_matrix)
 
     for i, atom in enumerate(atom_list):
-        relative_position = atom.relative_position
-        relative_position = relative_position.dot(rotation_matrix)
-        relative_position += move_distance_after_rotation
-        relative_position -= np.floor(relative_position)
+        fractional_position = atom.fractional_position
+        fractional_position = fractional_position.dot(rotation_matrix)
+        fractional_position += move_distance_after_rotation
+        fractional_position -= np.floor(fractional_position)
 
-        atom_list[i].relative_position = relative_position
+        atom_list[i].fractional_position = fractional_position
 
 
 def get_config_system(config: Config) -> str:
@@ -406,9 +406,9 @@ def get_config_system(config: Config) -> str:
 def find_jump_pair_from_cfg(config_start: Config, config_end: Config) -> typing.Tuple[int, int]:
     index_distance_list = list()
     for atom1, atom2 in zip(config_start.atom_list, config_end.atom_list):
-        relative_distance_vector = get_relative_distance_vector(atom1, atom2)
-        relative_distance_square = np.inner(relative_distance_vector, relative_distance_vector)
-        index_distance_list.append((atom1, relative_distance_square))
+        fractional_distance_vector = get_fractional_distance_vector(atom1, atom2)
+        fractional_distance_square = np.inner(fractional_distance_vector, fractional_distance_vector)
+        index_distance_list.append((atom1, fractional_distance_square))
     index_distance_list.sort(key=lambda sort_pair: sort_pair[1], reverse=True)
     if index_distance_list[0][0].elem_type == "X":
         return index_distance_list[0][0].atom_id, index_distance_list[1][0].atom_id
@@ -419,42 +419,42 @@ def find_jump_pair_from_cfg(config_start: Config, config_end: Config) -> typing.
 def find_jump_id_from_poscar(config_start: Config, config_end: Config) -> int:
     index_distance_list = list()
     for atom1, atom2 in zip(config_start.atom_list, config_end.atom_list):
-        relative_distance_vector = get_relative_distance_vector(atom1, atom2)
-        relative_distance_square = np.inner(relative_distance_vector, relative_distance_vector)
-        index_distance_list.append((atom1, relative_distance_square))
+        fractional_distance_vector = get_fractional_distance_vector(atom1, atom2)
+        fractional_distance_square = np.inner(fractional_distance_vector, fractional_distance_vector)
+        index_distance_list.append((atom1, fractional_distance_square))
     index_distance_list.sort(key=lambda sort_pair: sort_pair[1], reverse=True)
     return index_distance_list[0][0].atom_id
 
 
 def get_distance_of_atom_between(config_start: Config, config_end: Config, atom_id: int) -> float:
-    relative_distance_vector = config_end.atom_list[atom_id].relative_position - \
-                               config_start.atom_list[atom_id].relative_position
+    fractional_distance_vector = config_end.atom_list[atom_id].fractional_position - \
+                               config_start.atom_list[atom_id].fractional_position
     for i in range(3):
-        while relative_distance_vector[i] >= 0.5:
-            relative_distance_vector[i] -= 1
-        while relative_distance_vector[i] < -0.5:
-            relative_distance_vector[i] += 1
-    absolute_distance_vector = relative_distance_vector.dot(config_start.basis)
+        while fractional_distance_vector[i] >= 0.5:
+            fractional_distance_vector[i] -= 1
+        while fractional_distance_vector[i] < -0.5:
+            fractional_distance_vector[i] += 1
+    absolute_distance_vector = fractional_distance_vector.dot(config_start.basis)
     absolute_distance_square = np.inner(absolute_distance_vector, absolute_distance_vector)
     return np.sqrt(absolute_distance_square)
 
 
-def get_relative_distance_vector_of_atom_between(config_start: Config, config_end: Config, atom_id: int) -> np.ndarray:
-    relative_distance_vector = config_end.atom_list[atom_id].relative_position - \
-                               config_start.atom_list[atom_id].relative_position
+def get_fractional_distance_vector_of_atom_between(config_start: Config, config_end: Config, atom_id: int) -> np.ndarray:
+    fractional_distance_vector = config_end.atom_list[atom_id].fractional_position - \
+                               config_start.atom_list[atom_id].fractional_position
     for i in range(3):
-        while relative_distance_vector[i] >= 0.5:
-            relative_distance_vector[i] -= 1
-        while relative_distance_vector[i] < -0.5:
-            relative_distance_vector[i] += 1
-    return relative_distance_vector
+        while fractional_distance_vector[i] >= 0.5:
+            fractional_distance_vector[i] -= 1
+        while fractional_distance_vector[i] < -0.5:
+            fractional_distance_vector[i] += 1
+    return fractional_distance_vector
 
 
 def atoms_jump(config: Config, jump_pair: typing.Tuple[int, int]):
     lhs, rhs = jump_pair
-    temp = config.atom_list[lhs].relative_position
-    config.atom_list[lhs].relative_position = config.atom_list[rhs].relative_position
-    config.atom_list[rhs].relative_position = temp
+    temp = config.atom_list[lhs].fractional_position
+    config.atom_list[lhs].fractional_position = config.atom_list[rhs].fractional_position
+    config.atom_list[rhs].fractional_position = temp
 
     temp = config.atom_list[lhs].cartesian_position
     config.atom_list[lhs].cartesian_position = config.atom_list[rhs].cartesian_position
@@ -536,18 +536,18 @@ if __name__ == "__main__":
 # config = read_config("../test/test_files/test.cfg")
 # vacancy_id = get_vacancy_index(config)
 # print(vacancy_id)
-# move_distance = np.full((3,), 0.5) - config.atom_list[vacancy_id].relative_position
+# move_distance = np.full((3,), 0.5) - config.atom_list[vacancy_id].fractional_position
 #
 # atom_set = get_neighbors_set_of_vacancy(config, vacancy_id)
 # atom_list = config.atom_list
 # new_atom_list = list()
 # for idx in atom_set:
 #     atom = atom_list[idx]
-#     relative_position = atom.relative_position
-#     relative_position += move_distance
-#     relative_position -= np.floor(relative_position)
-#     atom.relative_position = relative_position
-#     cartesian_position = (relative_position - np.full((3,), 0.5)).dot(config.basis)
+#     fractional_position = atom.fractional_position
+#     fractional_position += move_distance
+#     fractional_position -= np.floor(fractional_position)
+#     atom.fractional_position = fractional_position
+#     cartesian_position = (fractional_position - np.full((3,), 0.5)).dot(config.basis)
 #     new_atom_list.append(atom_list[idx])
 # new_config = Config(config.basis, new_atom_list)
 # write_config(new_config, "test.cfg")

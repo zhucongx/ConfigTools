@@ -19,21 +19,21 @@ class Cluster(object):
                 print("type X..!!!")
             self._atom_list.append(copy.deepcopy(insert_atom))
 
-        # self._atom_list.sort(key=lambda sort_atom: sort_atom.relative_position.tolist())
+        # self._atom_list.sort(key=lambda sort_atom: sort_atom.fractional_position.tolist())
         def _position_sort(lhs: Atom, rhs: Atom) -> bool:
-            relative_position_lhs = lhs.relative_position
-            relative_position_rhs = rhs.relative_position
-            diff_x = relative_position_lhs[0] - relative_position_rhs[0]
+            fractional_position_lhs = lhs.fractional_position
+            fractional_position_rhs = rhs.fractional_position
+            diff_x = fractional_position_lhs[0] - fractional_position_rhs[0]
             if diff_x < - K_EPSILON:
                 return True
             if diff_x > K_EPSILON:
                 return False
-            diff_y = relative_position_lhs[1] - relative_position_rhs[1]
+            diff_y = fractional_position_lhs[1] - fractional_position_rhs[1]
             if diff_y < - K_EPSILON:
                 return True
             if diff_y > K_EPSILON:
                 return False
-            diff_z = relative_position_lhs[1] - relative_position_rhs[1]
+            diff_z = fractional_position_lhs[1] - fractional_position_rhs[1]
             if diff_z < - K_EPSILON:
                 return True
             if diff_z > K_EPSILON:
@@ -71,24 +71,24 @@ class Cluster(object):
 
 
 def _is_atom_smaller(lhs: Atom, rhs: Atom) -> bool:
-    relative_position_lhs = lhs.relative_position
-    relative_position_rhs = rhs.relative_position
-    diff_x = relative_position_lhs[0] - relative_position_rhs[0]
+    fractional_position_lhs = lhs.fractional_position
+    fractional_position_rhs = rhs.fractional_position
+    diff_x = fractional_position_lhs[0] - fractional_position_rhs[0]
     if diff_x < - K_EPSILON:
         return True
     if diff_x > K_EPSILON:
         return False
-    diff_y = relative_position_lhs[1] - relative_position_rhs[1]
+    diff_y = fractional_position_lhs[1] - fractional_position_rhs[1]
     if diff_y < - K_EPSILON:
         return True
     if diff_y > K_EPSILON:
         return False
-    return relative_position_lhs[2] < relative_position_rhs[2] - K_EPSILON
+    return fractional_position_lhs[2] < fractional_position_rhs[2] - K_EPSILON
     # return lhs.atom_id < rhs.atom_id
-    # relative_position_lhs = lhs.relative_position
-    # relative_position_rhs = rhs.relative_position
-    # diff_norm = np.linalg.norm(relative_position_lhs - np.full((3,), 0.5)) - \
-    #             np.linalg.norm(relative_position_rhs - np.full((3,), 0.5))
+    # fractional_position_lhs = lhs.fractional_position
+    # fractional_position_rhs = rhs.fractional_position
+    # diff_norm = np.linalg.norm(fractional_position_lhs - np.full((3,), 0.5)) - \
+    #             np.linalg.norm(fractional_position_rhs - np.full((3,), 0.5))
     # return diff_norm < - K_EPSILON
 
 
@@ -104,7 +104,7 @@ def _is_cluster_smaller_symmetrically(lhs: Cluster, rhs: Cluster) -> bool:
 
 def _get_sorted_atom_vector(config: cfg.Config) -> typing.List[Atom]:
     atom_id_set = cfg.get_neighbors_set_of_atom(config, cfg.get_vacancy_index(config))
-    move_distance = np.full((3,), 0.5) - config.atom_list[cfg.get_vacancy_index(config)].relative_position
+    move_distance = np.full((3,), 0.5) - config.atom_list[cfg.get_vacancy_index(config)].fractional_position
     atom_list: typing.List[Atom] = list()
     for atom_id in atom_id_set:
     # for atom_id in range(config.number_atoms):
@@ -112,10 +112,10 @@ def _get_sorted_atom_vector(config: cfg.Config) -> typing.List[Atom]:
         if atom.elem_type == "X":
             continue
         atom.clean_neighbors_lists()
-        relative_position = atom.relative_position
-        relative_position += move_distance
-        relative_position -= np.floor(relative_position)
-        atom.relative_position = relative_position
+        fractional_position = atom.fractional_position
+        fractional_position += move_distance
+        fractional_position -= np.floor(fractional_position)
+        atom.fractional_position = fractional_position
         atom_list.append(atom)
     Atom.__lt__ = lambda self, other: _is_atom_smaller(self, other)
     atom_list.sort()

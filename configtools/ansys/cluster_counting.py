@@ -207,8 +207,8 @@ if __name__ == "__main__":
     # atom1 = config.atom_list[0]
     # res = []
     # for atom2 in config.atom_list:
-    #     relative_distance_vector = get_relative_distance_vector(atom1, atom2)
-    #     absolute_distance_vector = relative_distance_vector.dot(config.basis)
+    #     fractional_distance_vector = get_fractional_distance_vector(atom1, atom2)
+    #     absolute_distance_vector = fractional_distance_vector.dot(config.basis)
     #     res.append(np.sqrt(np.inner(absolute_distance_vector, absolute_distance_vector)))
     # res = sorted(res)
     # for i in res:

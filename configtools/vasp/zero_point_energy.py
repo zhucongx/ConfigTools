@@ -26,12 +26,12 @@ def prepare_zpe_poscar(contcar_filename: str,
     config_near_neighbors_hashset.discard(vac_index)
     for atom_index in config_near_neighbors_hashset:
         poscar_atom_index = None
-        min_relative_distance = 10
+        min_fractional_distance = 10
         for atom in poscar.atom_list:
-            relative_distance_vector = cfg.get_relative_distance_vector(atom, config.atom_list[atom_index])
-            relative_distance = np.inner(relative_distance_vector, relative_distance_vector)
-            if relative_distance < min_relative_distance:
-                min_relative_distance = relative_distance
+            fractional_distance_vector = cfg.get_fractional_distance_vector(atom, config.atom_list[atom_index])
+            fractional_distance = np.inner(fractional_distance_vector, fractional_distance_vector)
+            if fractional_distance < min_fractional_distance:
+                min_fractional_distance = fractional_distance
                 poscar_atom_index = atom.atom_id
         contcar_near_neighbors_hashset.add(poscar_atom_index)
     _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename + '1')
@@ -43,12 +43,12 @@ def prepare_zpe_poscar(contcar_filename: str,
     config_near_neighbors_hashset.discard(vac_index)
     for atom_index in config_near_neighbors_hashset:
         poscar_atom_index = None
-        min_relative_distance = 10
+        min_fractional_distance = 10
         for atom in poscar.atom_list:
-            relative_distance_vector = cfg.get_relative_distance_vector(atom, config.atom_list[atom_index])
-            relative_distance = np.inner(relative_distance_vector, relative_distance_vector)
-            if relative_distance < min_relative_distance:
-                min_relative_distance = relative_distance
+            fractional_distance_vector = cfg.get_fractional_distance_vector(atom, config.atom_list[atom_index])
+            fractional_distance = np.inner(fractional_distance_vector, fractional_distance_vector)
+            if fractional_distance < min_fractional_distance:
+                min_fractional_distance = fractional_distance
                 poscar_atom_index = atom.atom_id
         contcar_near_neighbors_hashset.add(poscar_atom_index)
     _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename + '2')
@@ -84,10 +84,10 @@ def _write_selective_poscar(contcar: cfg.Config, atom_index_list: typing.Set[int
             continue
         for index in element_list:
             if index in atom_index_list:
-                content += np.array2string(contcar.atom_list[int(index)].relative_position,
+                content += np.array2string(contcar.atom_list[int(index)].fractional_position,
                                            formatter={"float_kind": lambda x: "%.16f" % x})[1:-1] + " T T T" + "\n"
             else:
-                content += np.array2string(contcar.atom_list[int(index)].relative_position,
+                content += np.array2string(contcar.atom_list[int(index)].fractional_position,
                                            formatter={"float_kind": lambda x: "%.16f" % x})[1:-1] + " F F F" + "\n"
     with open(out_filename, "w") as f:
         f.write(content)

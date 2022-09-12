@@ -9,10 +9,10 @@ K_EPSILON = 1e-8
 
 
 def _atom_sort_compare(lhs: Atom, rhs: Atom) -> bool:
-    relative_position_lhs = lhs.relative_position - np.full((3,), 0.5)
-    relative_position_rhs = rhs.relative_position - np.full((3,), 0.5)
-    distance_square_lhs = np.inner(relative_position_lhs, relative_position_lhs)
-    distance_square_rhs = np.inner(relative_position_rhs, relative_position_rhs)
+    fractional_position_lhs = lhs.fractional_position - np.full((3,), 0.5)
+    fractional_position_rhs = rhs.fractional_position - np.full((3,), 0.5)
+    distance_square_lhs = np.inner(fractional_position_lhs, fractional_position_lhs)
+    distance_square_rhs = np.inner(fractional_position_rhs, fractional_position_rhs)
 
     diff = distance_square_lhs - distance_square_rhs
     if diff < - K_EPSILON:
@@ -20,25 +20,25 @@ def _atom_sort_compare(lhs: Atom, rhs: Atom) -> bool:
     if diff > K_EPSILON:
         return False
 
-    diff_x = relative_position_lhs[0] - relative_position_rhs[0]
+    diff_x = fractional_position_lhs[0] - fractional_position_rhs[0]
     if diff_x < - K_EPSILON:
         return True
     if diff_x > K_EPSILON:
         return False
-    diff_y = relative_position_lhs[1] - relative_position_rhs[1]
+    diff_y = fractional_position_lhs[1] - fractional_position_rhs[1]
     if diff_y < - K_EPSILON:
         return True
     if diff_y > K_EPSILON:
         return False
-    return relative_position_lhs[2] < relative_position_rhs[2] - K_EPSILON
+    return fractional_position_lhs[2] < fractional_position_rhs[2] - K_EPSILON
 
 
 def _is_atom_smaller_symmetrically(lhs: Atom, rhs: Atom) -> bool:
-    relative_position_lhs = lhs.relative_position - np.full((3,), 0.5)
-    relative_position_rhs = rhs.relative_position - np.full((3,), 0.5)
+    fractional_position_lhs = lhs.fractional_position - np.full((3,), 0.5)
+    fractional_position_rhs = rhs.fractional_position - np.full((3,), 0.5)
 
-    distance_square_lhs = np.inner(relative_position_lhs, relative_position_lhs)
-    distance_square_rhs = np.inner(relative_position_rhs, relative_position_rhs)
+    distance_square_lhs = np.inner(fractional_position_lhs, fractional_position_lhs)
+    distance_square_rhs = np.inner(fractional_position_rhs, fractional_position_rhs)
 
     return distance_square_lhs < distance_square_rhs - K_EPSILON
 
@@ -82,8 +82,8 @@ def get_symmetrically_sorted_atom_vectors(config: Config, jump_pair: typing.Tupl
         typing.Tuple[typing.List[Atom], typing.List[Atom]]:
     # atom_id_set = get_more_neighbors_set_of_jump_pair(config, jump_pair)
     atom_id_set = set(range(256))
-    move_distance_start = np.full((3,), 0.5) - config.atom_list[jump_pair[0]].relative_position
-    move_distance_end = np.full((3,), 0.5) - config.atom_list[jump_pair[1]].relative_position
+    move_distance_start = np.full((3,), 0.5) - config.atom_list[jump_pair[0]].fractional_position
+    move_distance_end = np.full((3,), 0.5) - config.atom_list[jump_pair[1]].fractional_position
 
     atom_list_start: typing.List[Atom] = list()
     atom_list_end: typing.List[Atom] = list()
@@ -93,10 +93,10 @@ def get_symmetrically_sorted_atom_vectors(config: Config, jump_pair: typing.Tupl
             continue
         atom = copy.deepcopy(config.atom_list[atom_id])
         atom.clean_neighbors_lists()
-        relative_position = atom.relative_position
-        relative_position += move_distance_start
-        relative_position -= np.floor(relative_position)
-        atom.relative_position = relative_position
+        fractional_position = atom.fractional_position
+        fractional_position += move_distance_start
+        fractional_position -= np.floor(fractional_position)
+        atom.fractional_position = fractional_position
 
         atom_list_start.append(atom)
 
@@ -105,12 +105,12 @@ def get_symmetrically_sorted_atom_vectors(config: Config, jump_pair: typing.Tupl
             continue
         atom = copy.deepcopy(config.atom_list[atom_id])
         atom.clean_neighbors_lists()
-        relative_position = atom.relative_position
-        relative_position += move_distance_end
-        relative_position -= np.floor(relative_position)
-        atom.relative_position = relative_position
+        fractional_position = atom.fractional_position
+        fractional_position += move_distance_end
+        fractional_position -= np.floor(fractional_position)
+        atom.fractional_position = fractional_position
         if atom.atom_id == jump_pair[1]:
-            atom.relative_position = np.full((3,), 0.5) - move_distance_start + move_distance_end
+            atom.fractional_position = np.full((3,), 0.5) - move_distance_start + move_distance_end
         atom_list_end.append(atom)
 
     return _sort_helper(atom_list_start, config), _sort_helper(atom_list_end, config)
@@ -118,7 +118,7 @@ def get_symmetrically_sorted_atom_vectors(config: Config, jump_pair: typing.Tupl
 
 # def get_symmetrically_sorted_atom_vector(config: Config, vacancy_id: int) -> typing.List[Atom]:
 #     atom_id_set = get_neighbors_set_of_vacancy(config, vacancy_id)
-#     move_distance = np.full((3,), 0.5) - config.atom_list[vacancy_id].relative_position
+#     move_distance = np.full((3,), 0.5) - config.atom_list[vacancy_id].fractional_position
 #     atom_list: typing.List[Atom] = list()
 #
 #     for atom_id in atom_id_set:
@@ -126,13 +126,13 @@ def get_symmetrically_sorted_atom_vectors(config: Config, jump_pair: typing.Tupl
 #             continue
 #         atom = copy.deepcopy(config.atom_list[atom_id])
 #         atom.clean_neighbors_lists()
-#         relative_position = atom.relative_position
-#         relative_position += move_distance
-#         relative_position -= np.floor(relative_position)
-#         atom.relative_position = relative_position
+#         fractional_position = atom.fractional_position
+#         fractional_position += move_distance
+#         fractional_position -= np.floor(fractional_position)
+#         atom.fractional_position = fractional_position
 #
 #         atom_list.append(atom)
-#         # cartesian_position = (relative_position - np.full((3,), 0.5)).dot(config.basis)
+#         # cartesian_position = (fractional_position - np.full((3,), 0.5)).dot(config.basis)
 #         # if np.sqrt(np.inner(cartesian_position, cartesian_position)) < 8.1:
 #         #     atom_list.append(atom)
 #
