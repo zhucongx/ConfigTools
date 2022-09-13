@@ -9,7 +9,8 @@ import copy
 
 
 class Config(object):
-    def __init__(self, basis: typing.Union[list, np.ndarray] = None, atom_list: typing.List[Atom] = None):
+    def __init__(self, basis: typing.Union[list, np.ndarray] = None,
+                 atom_list: typing.List[Atom] = None):
         if basis is None:
             self._basis = np.array([0, 0, 0], [0, 0, 0], [0, 0, 0])
         else:
@@ -40,6 +41,8 @@ class Config(object):
     def basis(self, basis: typing.Union[list, np.ndarray]):
         if isinstance(basis, list):
             basis = np.array(basis, dtype=np.float64)
+        if basis.shape != (3, 3):
+            raise RuntimeError(f"input basis size is not (3, 3) but {basis.shape}")
         self._basis = basis
 
     def convert_fractional_to_cartesian(self) -> None:
@@ -81,7 +84,7 @@ class Config(object):
         for i in range(self.number_atoms):
             for j in range(i):
                 fractional_distance_vector = get_fractional_distance_vector(self._atom_list[i],
-                                                                        self._atom_list[j])
+                                                                            self._atom_list[j])
                 absolute_distance_vector = fractional_distance_vector.dot(self._basis)
 
                 if abs(absolute_distance_vector[0]) > SEVENTH_NEAREST_NEIGHBORS_CUTOFF:
@@ -428,7 +431,7 @@ def find_jump_id_from_poscar(config_start: Config, config_end: Config) -> int:
 
 def get_distance_of_atom_between(config_start: Config, config_end: Config, atom_id: int) -> float:
     fractional_distance_vector = config_end.atom_list[atom_id].fractional_position - \
-                               config_start.atom_list[atom_id].fractional_position
+                                 config_start.atom_list[atom_id].fractional_position
     for i in range(3):
         while fractional_distance_vector[i] >= 0.5:
             fractional_distance_vector[i] -= 1
@@ -439,9 +442,10 @@ def get_distance_of_atom_between(config_start: Config, config_end: Config, atom_
     return np.sqrt(absolute_distance_square)
 
 
-def get_fractional_distance_vector_of_atom_between(config_start: Config, config_end: Config, atom_id: int) -> np.ndarray:
+def get_fractional_distance_vector_of_atom_between(config_start: Config, config_end: Config,
+                                                   atom_id: int) -> np.ndarray:
     fractional_distance_vector = config_end.atom_list[atom_id].fractional_position - \
-                               config_start.atom_list[atom_id].fractional_position
+                                 config_start.atom_list[atom_id].fractional_position
     for i in range(3):
         while fractional_distance_vector[i] >= 0.5:
             fractional_distance_vector[i] -= 1
