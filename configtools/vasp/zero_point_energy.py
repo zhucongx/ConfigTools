@@ -52,6 +52,25 @@ def prepare_zpe_poscar(contcar_filename: str,
                 poscar_atom_index = atom.atom_id
         contcar_near_neighbors_hashset.add(poscar_atom_index)
     _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename + '2')
+    # third neighbors
+    config_near_neighbors_hashset: typing.Set[int] = set()
+    for atom_index in config.atom_list[vac_index].third_nearest_neighbor_list + \
+                      config.atom_list[jump_atom_index].third_nearest_neighbor_list:
+        config_near_neighbors_hashset.add(atom_index)
+    config_near_neighbors_hashset.discard(vac_index)
+    for atom_index in config_near_neighbors_hashset:
+        poscar_atom_index = None
+        min_fractional_distance = 10
+        for atom in poscar.atom_list:
+            fractional_distance_vector = cfg.get_fractional_distance_vector(atom, config.atom_list[atom_index])
+            fractional_distance = np.inner(fractional_distance_vector, fractional_distance_vector)
+            if fractional_distance < min_fractional_distance:
+                min_fractional_distance = fractional_distance
+                poscar_atom_index = atom.atom_id
+        contcar_near_neighbors_hashset.add(poscar_atom_index)
+    _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename + '3')
+    # all
+    _write_all_poscar(contcar, out_filename + 'all')
 
 
 def prepare_frequency_poscar(transition_poscar_filename: str,
@@ -59,6 +78,35 @@ def prepare_frequency_poscar(transition_poscar_filename: str,
                              poscar_jump_atom_index: int) -> None:
     transition_poscar = cfg.read_poscar(transition_poscar_filename, False)
     _write_selective_poscar(transition_poscar, {poscar_jump_atom_index}, out_filename)
+
+
+def _write_all_poscar(contcar: cfg.Config, out_filename: str) -> None:
+    content = "#comment\n1.0\n"
+    for basis_row in contcar.basis:
+        for base in basis_row:
+            content += f"{base} "
+        content += "\n"
+    element_list_map = contcar.get_element_list_map()
+
+    element_str = ""
+    count_str = ""
+    for element, element_list in element_list_map.items():
+        if element == "X":
+            continue
+        element_str += element + " "
+        count_str += str(len(element_list)) + " "
+    content += element_str + "\n" + count_str + "\n"
+    content += "selective\n"
+    content += "Direct\n"
+    for element, element_list in element_list_map.items():
+        if element == "X":
+            continue
+        for index in element_list:
+            content += np.array2string(contcar.atom_list[int(index)].fractional_position,
+                                       formatter={"float_kind": lambda x: "%.16f" % x})[1:-1] + " T T T" + "\n"
+
+    with open(out_filename, "w") as f:
+        f.write(content)
 
 
 def _write_selective_poscar(contcar: cfg.Config, atom_index_list: typing.Set[int], out_filename: str) -> None:
@@ -115,7 +163,7 @@ IALGO  = 48
 LREAL  = AUTO
 ENCUT  = 450.00
 ENAUG  = 600.00
-EDIFF  = 1e-7
+EDIFF  = 1e-6
 ISPIN  = 1
 
 LWAVE  = .FALSE.
