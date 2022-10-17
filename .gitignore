@@ -5,6 +5,7 @@ gnn/checkpoints
 # IDE
 .vscode/
 .idea/
+.fleet/
 # MacOS
 **.DS_Store
 # Created by https://www.toptal.com/developers/gitignore/api/python
