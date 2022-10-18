@@ -1,0 +1,6 @@
+[submodule "data/raw/all_data_zpe"]
+	path = data/raw/all_data_zpe
+	url = https://github.com/zhucongx/all_data_zpe.git
+[submodule "data/raw/all_data_neb"]
+	path = data/raw/all_data_neb
+	url = https://github.com/zhucongx/all_data_neb.git
