@@ -3,82 +3,165 @@ import numpy as np
 import configtools.cfg as cfg
 
 
-def prepare_zpe_poscar(contcar_filename: str,
-                       poscar_filename: str,
-                       config_filename: str,
-                       out_filename: str,
-                       jump_atom_index: int,
-                       poscar_jump_atom_index: int) -> None:
-    contcar = cfg.read_poscar(contcar_filename, False)
-    poscar = cfg.read_poscar(poscar_filename, False)
-    config = cfg.read_config(config_filename, True)
-    # get jump atom index in poscar which should be same as that in contcar
-    vac_index = cfg.get_vacancy_index(config)
+# def prepare_zpe_poscar(contcar_filename: str,
+#                        poscar_filename: str,
+#                        config_filename: str,
+#                        out_filename: str,
+#                        jump_atom_index: int,
+#                        poscar_jump_atom_index: int) -> None:
+#     contcar = cfg.read_poscar(contcar_filename, False)
+#     poscar = cfg.read_poscar(poscar_filename, False)
+#     config = cfg.read_config(config_filename, True)
+#     # get jump atom index in poscar which should be same as that in contcar
+#     vac_index = cfg.get_vacancy_index(config)
+#     contcar_near_neighbors_hashset: typing.Set[int] = set()
+#     # jump_atom
+#     contcar_near_neighbors_hashset.add(poscar_jump_atom_index)
+#     _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename)
+#     # first neighbors
+#     config_near_neighbors_hashset: typing.Set[int] = set()
+#     for atom_index in config.atom_list[vac_index].first_nearest_neighbor_list + \
+#                       config.atom_list[jump_atom_index].first_nearest_neighbor_list:
+#         config_near_neighbors_hashset.add(atom_index)
+#     config_near_neighbors_hashset.discard(vac_index)
+#     for atom_index in config_near_neighbors_hashset:
+#         poscar_atom_index = None
+#         min_fractional_distance = 10
+#         for atom in poscar.atom_list:
+#             fractional_distance_vector = cfg.get_fractional_distance_vector(atom, config.atom_list[atom_index])
+#             fractional_distance = np.inner(fractional_distance_vector, fractional_distance_vector)
+#             if fractional_distance < min_fractional_distance:
+#                 min_fractional_distance = fractional_distance
+#                 poscar_atom_index = atom.atom_id
+#         contcar_near_neighbors_hashset.add(poscar_atom_index)
+#     _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename + '1')
+#     # second neighbors
+#     config_near_neighbors_hashset: typing.Set[int] = set()
+#     for atom_index in config.atom_list[vac_index].second_nearest_neighbor_list + \
+#                       config.atom_list[jump_atom_index].second_nearest_neighbor_list:
+#         config_near_neighbors_hashset.add(atom_index)
+#     config_near_neighbors_hashset.discard(vac_index)
+#     for atom_index in config_near_neighbors_hashset:
+#         poscar_atom_index = None
+#         min_fractional_distance = 10
+#         for atom in poscar.atom_list:
+#             fractional_distance_vector = cfg.get_fractional_distance_vector(atom, config.atom_list[atom_index])
+#             fractional_distance = np.inner(fractional_distance_vector, fractional_distance_vector)
+#             if fractional_distance < min_fractional_distance:
+#                 min_fractional_distance = fractional_distance
+#                 poscar_atom_index = atom.atom_id
+#         contcar_near_neighbors_hashset.add(poscar_atom_index)
+#     _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename + '2')
+#     # third neighbors
+#     config_near_neighbors_hashset: typing.Set[int] = set()
+#     for atom_index in config.atom_list[vac_index].third_nearest_neighbor_list + \
+#                       config.atom_list[jump_atom_index].third_nearest_neighbor_list:
+#         config_near_neighbors_hashset.add(atom_index)
+#     config_near_neighbors_hashset.discard(vac_index)
+#     for atom_index in config_near_neighbors_hashset:
+#         poscar_atom_index = None
+#         min_fractional_distance = 10
+#         for atom in poscar.atom_list:
+#             fractional_distance_vector = cfg.get_fractional_distance_vector(atom, config.atom_list[atom_index])
+#             fractional_distance = np.inner(fractional_distance_vector, fractional_distance_vector)
+#             if fractional_distance < min_fractional_distance:
+#                 min_fractional_distance = fractional_distance
+#                 poscar_atom_index = atom.atom_id
+#         contcar_near_neighbors_hashset.add(poscar_atom_index)
+#     _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename + '3')
+#     # all
+#     _write_all_poscar(contcar, out_filename + 'all')
+
+
+def prepare_frequency_poscar(initial_config_filename: str,
+                             final_config_filename: str,
+                             initial_poscar_filename: str,
+                             final_poscar_filename: str,
+                             initial_contcar_filename: str,
+                             final_contcar_filename: str,
+                             transition_contcar_filename: str,
+                             initial_out_filename: str,
+                             final_out_filename: str,
+                             transition_out_filename: str) -> None:
+    initial_config = cfg.read_config(initial_config_filename, True)
+    final_config = cfg.read_config(final_config_filename, True)
+    initial_poscar = cfg.read_poscar(initial_poscar_filename, False)
+    final_poscar = cfg.read_poscar(final_poscar_filename, False)
+    initial_contcar = cfg.read_poscar(initial_contcar_filename, False)
+    final_contcar = cfg.read_poscar(final_contcar_filename, False)
+    transition_contcar = cfg.read_poscar(transition_contcar_filename, False)
+
     contcar_near_neighbors_hashset: typing.Set[int] = set()
+    poscar_jump_atom_index = cfg.find_jump_id_from_poscar(initial_poscar, final_poscar)
     # jump_atom
     contcar_near_neighbors_hashset.add(poscar_jump_atom_index)
-    _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename)
+    _write_selective_poscar(initial_contcar, contcar_near_neighbors_hashset, initial_out_filename)
+    _write_selective_poscar(final_contcar, contcar_near_neighbors_hashset, final_out_filename)
+    _write_selective_poscar(transition_contcar, contcar_near_neighbors_hashset, transition_out_filename)
+
+    # get jump atom index in poscar which should be same as that in contcar
+    vac_index, jump_atom_index = cfg.find_jump_pair_from_cfg(initial_config, final_config)
     # first neighbors
     config_near_neighbors_hashset: typing.Set[int] = set()
-    for atom_index in config.atom_list[vac_index].first_nearest_neighbor_list + \
-                      config.atom_list[jump_atom_index].first_nearest_neighbor_list:
+    for atom_index in initial_config.atom_list[vac_index].first_nearest_neighbor_list + \
+                      initial_config.atom_list[jump_atom_index].first_nearest_neighbor_list:
         config_near_neighbors_hashset.add(atom_index)
     config_near_neighbors_hashset.discard(vac_index)
     for atom_index in config_near_neighbors_hashset:
         poscar_atom_index = None
         min_fractional_distance = 10
-        for atom in poscar.atom_list:
-            fractional_distance_vector = cfg.get_fractional_distance_vector(atom, config.atom_list[atom_index])
+        for atom in initial_poscar.atom_list:
+            fractional_distance_vector = cfg.get_fractional_distance_vector(atom, initial_config.atom_list[atom_index])
             fractional_distance = np.inner(fractional_distance_vector, fractional_distance_vector)
             if fractional_distance < min_fractional_distance:
                 min_fractional_distance = fractional_distance
                 poscar_atom_index = atom.atom_id
         contcar_near_neighbors_hashset.add(poscar_atom_index)
-    _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename + '1')
+    _write_selective_poscar(initial_contcar, contcar_near_neighbors_hashset, initial_out_filename + '1')
+    _write_selective_poscar(final_contcar, contcar_near_neighbors_hashset, final_out_filename + '1')
+    _write_selective_poscar(transition_contcar, contcar_near_neighbors_hashset, transition_out_filename + '1')
     # second neighbors
     config_near_neighbors_hashset: typing.Set[int] = set()
-    for atom_index in config.atom_list[vac_index].second_nearest_neighbor_list + \
-                      config.atom_list[jump_atom_index].second_nearest_neighbor_list:
+    for atom_index in initial_config.atom_list[vac_index].second_nearest_neighbor_list + \
+                      initial_config.atom_list[jump_atom_index].second_nearest_neighbor_list:
         config_near_neighbors_hashset.add(atom_index)
     config_near_neighbors_hashset.discard(vac_index)
     for atom_index in config_near_neighbors_hashset:
         poscar_atom_index = None
         min_fractional_distance = 10
-        for atom in poscar.atom_list:
-            fractional_distance_vector = cfg.get_fractional_distance_vector(atom, config.atom_list[atom_index])
+        for atom in initial_poscar.atom_list:
+            fractional_distance_vector = cfg.get_fractional_distance_vector(atom, initial_config.atom_list[atom_index])
             fractional_distance = np.inner(fractional_distance_vector, fractional_distance_vector)
             if fractional_distance < min_fractional_distance:
                 min_fractional_distance = fractional_distance
                 poscar_atom_index = atom.atom_id
         contcar_near_neighbors_hashset.add(poscar_atom_index)
-    _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename + '2')
+    _write_selective_poscar(initial_contcar, contcar_near_neighbors_hashset, initial_out_filename + '2')
+    _write_selective_poscar(final_contcar, contcar_near_neighbors_hashset, final_out_filename + '2')
+    _write_selective_poscar(transition_contcar, contcar_near_neighbors_hashset, transition_out_filename + '2')
     # third neighbors
     config_near_neighbors_hashset: typing.Set[int] = set()
-    for atom_index in config.atom_list[vac_index].third_nearest_neighbor_list + \
-                      config.atom_list[jump_atom_index].third_nearest_neighbor_list:
+    for atom_index in initial_config.atom_list[vac_index].third_nearest_neighbor_list + \
+                      initial_config.atom_list[jump_atom_index].third_nearest_neighbor_list:
         config_near_neighbors_hashset.add(atom_index)
     config_near_neighbors_hashset.discard(vac_index)
     for atom_index in config_near_neighbors_hashset:
         poscar_atom_index = None
         min_fractional_distance = 10
-        for atom in poscar.atom_list:
-            fractional_distance_vector = cfg.get_fractional_distance_vector(atom, config.atom_list[atom_index])
+        for atom in initial_poscar.atom_list:
+            fractional_distance_vector = cfg.get_fractional_distance_vector(atom, initial_config.atom_list[atom_index])
             fractional_distance = np.inner(fractional_distance_vector, fractional_distance_vector)
             if fractional_distance < min_fractional_distance:
                 min_fractional_distance = fractional_distance
                 poscar_atom_index = atom.atom_id
         contcar_near_neighbors_hashset.add(poscar_atom_index)
-    _write_selective_poscar(contcar, contcar_near_neighbors_hashset, out_filename + '3')
+    _write_selective_poscar(initial_contcar, contcar_near_neighbors_hashset, initial_out_filename + '3')
+    _write_selective_poscar(final_contcar, contcar_near_neighbors_hashset, final_out_filename + '3')
+    _write_selective_poscar(transition_contcar, contcar_near_neighbors_hashset, transition_out_filename + '3')
     # all
-    _write_all_poscar(contcar, out_filename + 'all')
-
-
-def prepare_frequency_poscar(transition_poscar_filename: str,
-                             out_filename: str,
-                             poscar_jump_atom_index: int) -> None:
-    transition_poscar = cfg.read_poscar(transition_poscar_filename, False)
-    _write_selective_poscar(transition_poscar, {poscar_jump_atom_index}, out_filename)
-
+    _write_all_poscar(initial_contcar, initial_out_filename + 'all')
+    _write_all_poscar(final_contcar, final_out_filename + 'all')
+    _write_all_poscar(transition_contcar, transition_out_filename + 'all')
 
 def _write_all_poscar(contcar: cfg.Config, out_filename: str) -> None:
     content = "#comment\n1.0\n"

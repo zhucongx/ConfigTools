@@ -1,1 +1,1 @@
-from configtools.vasp.zero_point_energy import prepare_zpe_poscar, prepare_frequency_poscar, prepare_incar
+from configtools.vasp.zero_point_energy import prepare_frequency_poscar, prepare_incar
