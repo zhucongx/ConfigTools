@@ -22,8 +22,8 @@ def build_pd_file(element_set: typing.Set[str], path, out_put_destination):
     for i in tqdm(range(len(df_barriers)), desc="Loading configs ..."):
         dir_path = os.path.join(path, "config" + str(i))
 
-        poscar_s = cfg.read_poscar(os.path.join(dir_path, "POSCAR0"), False)
-        poscar_e = cfg.read_poscar(os.path.join(dir_path, "POSCAR1"), False)
+        poscar_s = cfg.read_poscar(os.path.join(dir_path, "CONTCAR_end"), False)
+        poscar_e = cfg.read_poscar(os.path.join(dir_path, "CONTCAR_start"), False)
         vac_id = cfg.find_jump_id_from_poscar(poscar_s, poscar_e)
         distance = cfg.get_distance_of_atom_between(poscar_e, poscar_s, vac_id)
 
@@ -31,6 +31,8 @@ def build_pd_file(element_set: typing.Set[str], path, out_put_destination):
         config_end = cfg.read_config(os.path.join(dir_path, "end.cfg"))
 
         jump_pair = (df_barriers.at[i, 'VacID'], df_barriers.at[i, 'JumpID'])
+        jump_pair2 = cfg.find_jump_pair_from_cfg(config_start, config_end)
+        assert jump_pair == jump_pair2
         migration_atom = config_start.atom_list[jump_pair[1]].elem_type
         migration_system = cfg.get_config_system(config_start)
         barriers = (df_barriers.at[i, 'ERGforward'], df_barriers.at[i, 'ERGbackward'])

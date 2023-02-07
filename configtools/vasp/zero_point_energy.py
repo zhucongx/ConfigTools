@@ -232,21 +232,18 @@ PREC   = Accurate
 ISYM   = 2
 NELM   = 240
 NELMIN = 4
-
-NSW    = 10000
-IBRION = 5
-POTIM  = 0.015
-NFREE  = 2
 ISIF   = 2
+
+IBRION = 8
 
 ISMEAR = 1
 SIGMA  = 0.4
 
-IALGO  = 48
-LREAL  = AUTO
+IALGO  = 38
+LREAL  = .FALSE.
 ENCUT  = 450.00
 ENAUG  = 600.00
-EDIFF  = 1e-6
+EDIFF  = 1e-8
 ISPIN  = 1
 
 LWAVE  = .FALSE.

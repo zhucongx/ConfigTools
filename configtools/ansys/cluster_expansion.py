@@ -268,4 +268,3 @@ if __name__ == "__main__":
     print(aaa[1])
     print(aaa[2])
     print(aaa[3])
-    print(aaa[4])
