@@ -1,5 +1,6 @@
 from configtools.cfg.constants import *
-from configtools.cfg.atom import Atom, get_average_fractional_position_atom, get_fractional_distance_vector
+from configtools.cfg.atom import Atom, get_average_fractional_position_atom, \
+    get_fractional_distance_vector
 from configtools.cfg.atomic_mass import get_atomic_mass
 from collections import OrderedDict
 import typing
@@ -57,7 +58,8 @@ class Config(object):
     def perturb(self) -> None:
         inverse_basis = np.linalg.inv(self._basis)
         for i, atom in enumerate(self._atom_list):
-            self._atom_list[i].fractional_position = (atom.cartesian_position + np.random.normal(0, 0.1, 3)).dot(
+            self._atom_list[i].fractional_position = (
+                    atom.cartesian_position + np.random.normal(0, 0.1, 3)).dot(
                 inverse_basis)
 
     def warp_at_periodic_boundaries(self) -> None:
@@ -93,7 +95,8 @@ class Config(object):
                     continue
                 if abs(absolute_distance_vector[2]) > SEVENTH_NEAREST_NEIGHBORS_CUTOFF:
                     continue
-                absolute_distance_square = np.inner(absolute_distance_vector, absolute_distance_vector)
+                absolute_distance_square = np.inner(absolute_distance_vector,
+                                                    absolute_distance_vector)
                 if absolute_distance_square <= SEVENTH_NEAREST_NEIGHBORS_CUTOFF ** 2:
                     if absolute_distance_square <= SIXTH_NEAREST_NEIGHBORS_CUTOFF ** 2:
                         if absolute_distance_square <= FIFTH_NEAREST_NEIGHBORS_CUTOFF ** 2:
@@ -104,8 +107,10 @@ class Config(object):
                                             self._atom_list[i].append_first_nearest_neighbor_list(j)
                                             self._atom_list[j].append_first_nearest_neighbor_list(i)
                                         elif absolute_distance_square <= SECOND_NEAREST_NEIGHBORS_CUTOFF_L ** 2:
-                                            self._atom_list[i].append_second_nearest_neighbor_list(j)
-                                            self._atom_list[j].append_second_nearest_neighbor_list(i)
+                                            self._atom_list[i].append_second_nearest_neighbor_list(
+                                                j)
+                                            self._atom_list[j].append_second_nearest_neighbor_list(
+                                                i)
                                     else:
                                         self._atom_list[i].append_third_nearest_neighbor_list(j)
                                         self._atom_list[j].append_third_nearest_neighbor_list(i)
@@ -155,7 +160,8 @@ def read_config(filename: str, update_neighbors: bool = True) -> Config:
         positions = content_list[data_index].split()
         data_index += 1
 
-        atom = Atom(id_count, mass, elem_type, float(positions[0]), float(positions[1]), float(positions[2]))
+        atom = Atom(id_count, mass, elem_type, float(positions[0]), float(positions[1]),
+                    float(positions[2]))
         try:
             if positions[3] == "#":
                 base_index = 4
@@ -186,14 +192,16 @@ def read_config(filename: str, update_neighbors: bool = True) -> Config:
 
 
 def write_config(config: Config, filename: str, neighbors_info: bool = True) -> None:
-    content = "Number of particles = " + str(config.number_atoms) + "\nA = 1.0 Angstrom (basic length-scale)\n"
+    content = "Number of particles = " + str(
+        config.number_atoms) + "\nA = 1.0 Angstrom (basic length-scale)\n"
     content += f"H0(1,1) = {config.basis[0][0]} A\nH0(1,2) = {config.basis[0][1]} A\nH0(1,3) = {config.basis[0][2]} A\n"
     content += f"H0(2,1) = {config.basis[1][0]} A\nH0(2,2) = {config.basis[1][1]} A\nH0(2,3) = {config.basis[1][2]} A\n"
     content += f"H0(3,1) = {config.basis[2][0]} A\nH0(3,2) = {config.basis[2][1]} A\nH0(3,3) = {config.basis[2][2]} A\n"
     content += ".NO_VELOCITY.\nentry_count = 3\n"
     for atom in config.atom_list:
         content += str(atom.mass) + "\n" + atom.elem_type + "\n"
-        content += np.array2string(atom.fractional_position, formatter={"float_kind": lambda x: "%.16f" % x})[1:-1]
+        content += np.array2string(atom.fractional_position,
+                                   formatter={"float_kind": lambda x: "%.16f" % x})[1:-1]
         if neighbors_info:
             content += " # "
             content += "".join(
@@ -234,7 +242,8 @@ def read_poscar(filename: str, update_neighbors: bool = True) -> Config:
         mass = get_atomic_mass(elem_type)
         for num_count in range(elem_number):
             positions = content_list[data_begin_index + id_count].split()
-            atom = Atom(id_count, mass, elem_type, float(positions[0]), float(positions[1]), float(positions[2]))
+            atom = Atom(id_count, mass, elem_type, float(positions[0]), float(positions[1]),
+                        float(positions[2]))
             atom_list.append(atom)
             id_count += 1
 
@@ -280,7 +289,8 @@ def write_poscar(config: Config, filename: str) -> None:
 
 def get_average_position_config(config1: Config, config2: Config) -> Config:
     if config1.number_atoms != config2.number_atoms:
-        raise RuntimeError(f"first config has {config1.number_atoms} atoms but second has {config2.number_atoms}")
+        raise RuntimeError(
+            f"first config has {config1.number_atoms} atoms but second has {config2.number_atoms}")
     if np.linalg.norm(config1.basis - config2.basis) > 1e-6:
         raise RuntimeError(f"base vectors do not match")
     config1.clear_neighbors()
@@ -329,10 +339,12 @@ def get_pair_rotation_matrix(config: Config, jump_pair: typing.Tuple[int, int]) 
             break
     # The third row is normalized since it is a cross product of two normalized vectors.
     # We use transposed matrix here because transpose of an orthogonal matrix equals its inverse
-    return np.array((pair_direction, vertical_vector, np.cross(pair_direction, vertical_vector))).transpose()
+    return np.array(
+        (pair_direction, vertical_vector, np.cross(pair_direction, vertical_vector))).transpose()
 
 
-def get_all_neighbors_set_of_jump_pair(config: Config, jump_pair: typing.Tuple[int, int]) -> typing.Set[int]:
+def get_all_neighbors_set_of_jump_pair(config: Config, jump_pair: typing.Tuple[int, int]) -> \
+        typing.Set[int]:
     near_neighbors_hashset: typing.Set[int] = set()
     for i in jump_pair:
         atom = config.atom_list[i]
@@ -410,7 +422,8 @@ def find_jump_pair_from_cfg(config_start: Config, config_end: Config) -> typing.
     index_distance_list = list()
     for atom1, atom2 in zip(config_start.atom_list, config_end.atom_list):
         fractional_distance_vector = get_fractional_distance_vector(atom1, atom2)
-        fractional_distance_square = np.inner(fractional_distance_vector, fractional_distance_vector)
+        fractional_distance_square = np.inner(fractional_distance_vector,
+                                              fractional_distance_vector)
         index_distance_list.append((atom1, fractional_distance_square))
     index_distance_list.sort(key=lambda sort_pair: sort_pair[1], reverse=True)
     if index_distance_list[0][0].elem_type == "X":
@@ -423,7 +436,8 @@ def find_jump_id_from_poscar(config_start: Config, config_end: Config) -> int:
     index_distance_list = list()
     for atom1, atom2 in zip(config_start.atom_list, config_end.atom_list):
         fractional_distance_vector = get_fractional_distance_vector(atom1, atom2)
-        fractional_distance_square = np.inner(fractional_distance_vector, fractional_distance_vector)
+        fractional_distance_square = np.inner(fractional_distance_vector,
+                                              fractional_distance_vector)
         index_distance_list.append((atom1, fractional_distance_square))
     index_distance_list.sort(key=lambda sort_pair: sort_pair[1], reverse=True)
     return index_distance_list[0][0].atom_id
@@ -465,31 +479,38 @@ def atoms_jump(config: Config, jump_pair: typing.Tuple[int, int]):
     config.atom_list[rhs].cartesian_position = temp
 
     temp = config.atom_list[lhs].first_nearest_neighbor_list
-    config.atom_list[lhs].first_nearest_neighbor_list = config.atom_list[rhs].first_nearest_neighbor_list
+    config.atom_list[lhs].first_nearest_neighbor_list = config.atom_list[
+        rhs].first_nearest_neighbor_list
     config.atom_list[rhs].first_nearest_neighbor_list = temp
 
     temp = config.atom_list[lhs].second_nearest_neighbor_list
-    config.atom_list[lhs].second_nearest_neighbor_list = config.atom_list[rhs].second_nearest_neighbor_list
+    config.atom_list[lhs].second_nearest_neighbor_list = config.atom_list[
+        rhs].second_nearest_neighbor_list
     config.atom_list[rhs].second_nearest_neighbor_list = temp
 
     temp = config.atom_list[lhs].third_nearest_neighbor_list
-    config.atom_list[lhs].third_nearest_neighbor_list = config.atom_list[rhs].third_nearest_neighbor_list
+    config.atom_list[lhs].third_nearest_neighbor_list = config.atom_list[
+        rhs].third_nearest_neighbor_list
     config.atom_list[rhs].third_nearest_neighbor_list = temp
 
     temp = config.atom_list[lhs].fourth_nearest_neighbor_list
-    config.atom_list[lhs].fourth_nearest_neighbor_list = config.atom_list[rhs].fourth_nearest_neighbor_list
+    config.atom_list[lhs].fourth_nearest_neighbor_list = config.atom_list[
+        rhs].fourth_nearest_neighbor_list
     config.atom_list[rhs].fourth_nearest_neighbor_list = temp
 
     temp = config.atom_list[lhs].fifth_nearest_neighbor_list
-    config.atom_list[lhs].fifth_nearest_neighbor_list = config.atom_list[rhs].fifth_nearest_neighbor_list
+    config.atom_list[lhs].fifth_nearest_neighbor_list = config.atom_list[
+        rhs].fifth_nearest_neighbor_list
     config.atom_list[rhs].fifth_nearest_neighbor_list = temp
 
     temp = config.atom_list[lhs].sixth_nearest_neighbor_list
-    config.atom_list[lhs].sixth_nearest_neighbor_list = config.atom_list[rhs].sixth_nearest_neighbor_list
+    config.atom_list[lhs].sixth_nearest_neighbor_list = config.atom_list[
+        rhs].sixth_nearest_neighbor_list
     config.atom_list[rhs].sixth_nearest_neighbor_list = temp
 
     temp = config.atom_list[lhs].seventh_nearest_neighbor_list
-    config.atom_list[lhs].seventh_nearest_neighbor_list = config.atom_list[rhs].seventh_nearest_neighbor_list
+    config.atom_list[lhs].seventh_nearest_neighbor_list = config.atom_list[
+        rhs].seventh_nearest_neighbor_list
     config.atom_list[rhs].seventh_nearest_neighbor_list = temp
 
     atom_id_set = get_all_neighbors_set_of_jump_pair(config, jump_pair)
@@ -531,10 +552,62 @@ def atoms_jump(config: Config, jump_pair: typing.Tuple[int, int]):
                 config.atom_list[i].seventh_nearest_neighbor_list[index] = lhs
 
 
-if __name__ == "__main__":
-    config1 = read_config("../../test/test_files/forward.cfg")
-    atoms_jump(config1, (18, 23))
-    config2 = read_config("../../test/test_files/backward.cfg")
+def generate_fcc(elem_type: str, lattice_constant: float, factor: int) -> Config:
+    basis = np.array([[1., 0., 0.],
+                      [0., 1., 0.],
+                      [0., 0., 1.]], dtype=np.float64) * lattice_constant * factor
+    atom_list: typing.List[Atom] = list()
+    ct = 0
+    for i in range(factor):
+        for j in range(factor):
+            for k in range(factor):
+                atom_list.append(
+                    Atom(ct, get_atomic_mass(elem_type), elem_type, i * lattice_constant,
+                         j * lattice_constant, k * lattice_constant))
+                ct += 1
+                atom_list.append(
+                    Atom(ct, get_atomic_mass(elem_type), elem_type, (i + 0.5) * lattice_constant,
+                         (j + 0.5) * lattice_constant, k * lattice_constant))
+                ct += 1
+                atom_list.append(
+                    Atom(ct, get_atomic_mass(elem_type), elem_type, i * lattice_constant,
+                         (j + 0.5) * lattice_constant, (k + 0.5) * lattice_constant))
+                ct += 1
+                atom_list.append(
+                    Atom(ct, get_atomic_mass(elem_type), elem_type, (i + 0.5) * lattice_constant,
+                         j * lattice_constant, (k + 0.5) * lattice_constant))
+                ct += 1
+
+    config = Config(basis, atom_list)
+    config.convert_cartesian_to_fractional()
+    return config
+
+
+def remove_fcc_random_displacement(config: Config, lattice_constant: float, factor: int) -> Config:
+    reference_config = generate_fcc(config.atom_list[0].elem_type, lattice_constant, factor)
+    for atom1 in config.atom_list:
+        min_distance = 1e10
+        min_index = -1
+        for atom2 in reference_config.atom_list:
+            fractional_distance_vector = atom1.fractional_position - atom2.fractional_position
+            for i in range(3):
+                while fractional_distance_vector[i] >= 0.5:
+                    fractional_distance_vector[i] -= 1
+                while fractional_distance_vector[i] < -0.5:
+                    fractional_distance_vector[i] += 1
+            absolute_distance_vector = fractional_distance_vector.dot(config.basis)
+            absolute_distance_square = np.inner(absolute_distance_vector, absolute_distance_vector)
+            if absolute_distance_square < min_distance:
+                min_distance = absolute_distance_square
+                min_index = atom2.atom_id
+        atom1.fractional_position = reference_config.atom_list[min_index].fractional_position
+        atom1.cartesian_position = reference_config.atom_list[min_index].cartesian_position
+    return config
+
+# if __name__ == "__main__":
+#    config1 = read_config("../../test/test_files/forward.cfg")
+#    atoms_jump(config1, (18, 23))
+#    config2 = read_config("../../test/test_files/backward.cfg")
 #     print(find_jump_pair(config1, config2))
 
 # config = read_config("../test/test_files/test.cfg")
