@@ -4,6 +4,3 @@
 [submodule "data/raw/all_data_neb_AlMgZn"]
 	path = data/raw/all_data_neb_AlMgZn
 	url = https://github.com/zhucongx/all_data_neb_AlMgZn.git
-[submodule "data/raw/all_data_neb_AlCuMgZn"]
-	path = data/raw/all_data_neb_AlCuMgZn
-	url = https://github.com/zhucongx/all_data_neb_AlCuMgZn.git
