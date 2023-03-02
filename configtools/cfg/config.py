@@ -147,7 +147,7 @@ def read_config(filename: str, update_neighbors: bool = True) -> Config:
     basis = np.array([[basis_xx, basis_xy, basis_xz],
                       [basis_yx, basis_yy, basis_yz],
                       [basis_zx, basis_zy, basis_zz]], dtype=np.float64) * scale
-    data_index = 13
+    data_index = 10 + float(content_list[2].split('=')[-1])
 
     atom_list: typing.List[Atom] = list()
     id_count = 0
