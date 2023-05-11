@@ -8,5 +8,5 @@
 	path = data/raw/all_data_neb_AlCuMgZn
 	url = https://github.com/zhucongx/all_data_neb_AlCuMgZn.git
 [submodule "data/raw/all_data_neb_AlMgSnZn"]
-	path = data/raw/all_data_neb_AlCuSnZn
+	path = data/raw/all_data_neb_AlMgSnZn
 	url = https://github.com/zhucongx/all_data_neb_AlMgSnZn.git
