@@ -18,4 +18,4 @@ ansys.build_pd_file({"Al", "Mg", "Sn", "Zn"},
                     "./data/processed/AlMgSnZn_compiled.pkl")
 ansys.build_pd_file({"Al", "Mg", "Sn", "Zn"},
                     "./data/raw/all_data_neb_AlMgZn/",
-                    "./data/processed/AlMgZn_Su_compiled.pkl")
+                    "./data/processed/AlMgZn_Sn_compiled.pkl")
