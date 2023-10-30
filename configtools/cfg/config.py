@@ -62,7 +62,7 @@ class Config(object):
                     atom.cartesian_position + np.random.normal(0, 0.1, 3)).dot(
                 inverse_basis)
 
-    def warp_at_periodic_boundaries(self) -> None:
+    def wrap_at_periodic_boundaries(self) -> None:
         for i, atom in enumerate(self._atom_list):
             fractional_position = atom.fractional_position
             fractional_position -= np.floor(fractional_position)
@@ -182,7 +182,7 @@ def read_config(filename: str, update_neighbors: bool = True) -> Config:
         id_count += 1
 
     config = Config(basis, atom_list)
-    config.warp_at_periodic_boundaries()
+    config.wrap_at_periodic_boundaries()
     logging.debug(f"Found neighbors {neighbor_found}")
     if (not neighbor_found) and update_neighbors:
         logging.debug(f"Finding neighbors")
@@ -252,7 +252,7 @@ def read_poscar(filename: str, update_neighbors: bool = True) -> Config:
         config.convert_fractional_to_cartesian()
     else:
         config.convert_cartesian_to_fractional()
-    config.warp_at_periodic_boundaries()
+    config.wrap_at_periodic_boundaries()
 
     if update_neighbors:
         logging.debug(f"Finding neighbors")
