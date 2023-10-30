@@ -44,24 +44,17 @@ def generate_fcc111(element: Element,
 
 
 def integrate_fcc111_from_fcc100(config111, config100):
-    basis_111 = config111.get_basis()
-    basis_100 = config100.get_basis()
-
-    cartesian_position_matrix_111 = config111.get_cartesian_positions_matrix()
-    relative_position_matrix_111 = config111.get_relative_positions_matrix()
-
-    cartesian_position_matrix_100 = config100.get_cartesian_positions_matrix()
-    relative_position_matrix_100 = config100.get_relative_positions_matrix()
-
     rotation_matrix = np.array([[np.sqrt(2) / 2, -np.sqrt(2) / 2, 0],
                                 [np.sqrt(6) / 6, np.sqrt(6) / 6, -np.sqrt(6) / 3],
                                 [np.sqrt(3) / 3, np.sqrt(3) / 3, np.sqrt(3) / 3]],
                                dtype=np.float64)
 
-    config100.set_basis(rotation_matrix.dot(basis_100.T).T)
+    # config100.set_basis(rotation_matrix.dot(config100.get_basis().T).T)
+    cartesian_position_matrix_100 = config100.get_cartesian_positions_matrix()
     config100.set_cartesian_positions_matrix(rotation_matrix.dot(cartesian_position_matrix_100))
     config100.move_cartesian((EPSILON, EPSILON, EPSILON))
-    config111.append(config100)
+
+    config111.append(config100, 1)
     return config111
 
 
@@ -73,14 +66,18 @@ if __name__ == '__main__':
     # ase.io.write("test_out.cfg", slab, format="cfg")
 
     cfg111 = generate_fcc111(Element.Al, (20, 10, 8), 4.046)
-
-    cfg100 = generate_fcc100(Element.Mg, (4, 4, 4), 4.046)
-
+    # cfg100 = generate_fcc100(Element.Mg, (4, 4, 4), 4.046)
+    cfg100 = Config.from_ase(ase.io.read("/Users/zhucongx/Research/"
+                                         "GOALI/ConfigTools/test/test_files/forward.cfg",
+                                         format="cfg"))
     cfg = integrate_fcc111_from_fcc100(cfg111, cfg100)
+    ase.io.write("test_out1.xyz", Config.to_ase(cfg), format="extxyz")
 
-    ase.io.write("test_out.xyz", Config.to_ase(cfg), format="extxyz")
-
-    # rotation_matrix = np.array([[1, -1, 0], [1, 1, -2], [1, 1, 1]], dtype=np.float64)
-    # rotation_matrix = 1 / 6 * np.array([[3 * np.sqrt(2), np.sqrt(6), 2 * np.sqrt(3)],
-    #                                     [-3 * np.sqrt(2), np.sqrt(6), 2 * np.sqrt(3)],
-    #                                     [0, -2 * np.sqrt(6), 2 * np.sqrt(3)]], dtype=np.float64)
+    cfg111 = generate_fcc111(Element.Al, (20, 10, 8), 4.046)
+    # cfg100 = generate_fcc100(Element.Mg, (4, 4, 4), 4.046)
+    cfg100 = Config.from_ase(ase.io.read("/Users/zhucongx/Research/"
+                                         "GOALI/ConfigTools/test/test_files/backward.cfg",
+                                         format="cfg"))
+    cfg = integrate_fcc111_from_fcc100(cfg111, cfg100)
+    cfg.reassign_lattice()
+    ase.io.write("test_out2.xyz", Config.to_ase(cfg), format="extxyz")
