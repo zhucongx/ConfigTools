@@ -1,6 +1,7 @@
 import numpy as np
 import typing
 import sys
+import functools
 import ase
 from LMClib.cfg.element import Element
 
@@ -175,16 +176,61 @@ class Config:
                             self._neighbor_lists[cutoff_id][lattice_id1].append(lattice_id2)
                             self._neighbor_lists[cutoff_id][lattice_id2].append(lattice_id1)
 
-    def append(self, new_config: 'Config', overlap_thresh=1) -> None:
+    def reassign_lattice(self):
+
+        def custom_sort(x, y):
+            lhs, rhs = x[0], y[0]
+            x_diff = lhs[0] - rhs[0]
+            if x_diff < -EPSILON:
+                return -1
+            if x_diff > EPSILON:
+                return 1
+            y_diff = lhs[1] - rhs[1]
+            if y_diff < -EPSILON:
+                return -1
+            if y_diff > EPSILON:
+                return 1
+            if lhs[2] < rhs[2] - EPSILON:
+                return -1
+            if lhs[2] > rhs[2] + EPSILON:
+                return 1
+            return 0
+
+        basis = self._basis
+
+        # Create a list of (relative_position, lattice_id) pairs
+        new_lattice_id_vector = [(self._relative_position_matrix[:, i].copy(),
+                                  self._lattice_to_atom_hashmap[i]) for i in
+                                 range(self.get_num_atoms())]
+        new_lattice_id_vector.sort(key=functools.cmp_to_key(custom_sort))
+
+        # Update matrices and hashmaps
+        new_relative_position_matrix = np.zeros_like(self._relative_position_matrix)
+        new_element_vector = []
+        for i in range(self._relative_position_matrix.shape[1]):
+            new_relative_position_matrix[:, i] = new_lattice_id_vector[i][0]
+            new_element_vector.append(self._element_vector[new_lattice_id_vector[i][1]])
+
+        self._relative_position_matrix = new_relative_position_matrix
+        self._cartesian_position_matrix = np.dot(basis, new_relative_position_matrix)
+        self._element_vector = new_element_vector
+
+        self._lattice_to_atom_hashmap = {index: index for index, atom in
+                                         enumerate(new_element_vector)}
+        self._atom_to_lattice_hashmap = {v: k for k, v in self._lattice_to_atom_hashmap.items()}
+
+    def append(self, new_config: 'Config', overlap_thresh=None) -> None:
         old_num_atoms = self.get_num_atoms()
         self._cartesian_position_matrix = np.hstack(
             (self._cartesian_position_matrix, new_config.get_cartesian_positions_matrix()))
         self._element_vector.extend(new_config._element_vector)
         self._relative_position_matrix = np.linalg.solve(self._basis,
                                                          self._cartesian_position_matrix)
-        for new_id in range(old_num_atoms, self.get_num_atoms()):
-            self._lattice_to_atom_hashmap[new_id] = new_id
-            self._atom_to_lattice_hashmap[new_id] = new_id
+
+        for lattice_id, atom_id in new_config._lattice_to_atom_hashmap.items():
+            self._lattice_to_atom_hashmap[lattice_id + old_num_atoms] = atom_id + old_num_atoms
+            self._atom_to_lattice_hashmap[atom_id + old_num_atoms] = lattice_id + old_num_atoms
+
         self.wrap()
         if overlap_thresh == 0:
             return
@@ -192,7 +238,7 @@ class Config:
         self._build_cell(overlap_thresh)
         overlap_thresh_squared = overlap_thresh ** 2
         # The dict is used to store the overlap pairs, the key is the lattice id of the atom in
-        # the new config, the value is the lattice id of the atom in the old config
+        # the old config, the value is the lattice id of the atom in the new config
         overlap_dict: typing.Dict[int, int] = {}
 
         offset_list = [(x, y, z) for x in [-1, 0, 1] for y in [-1, 0, 1] for z in [-1, 0, 1]]
@@ -215,9 +261,15 @@ class Config:
                             np.dot(self._basis, self.get_relative_distance_vector_lattice(
                                 lattice_id1, lattice_id2))).sum()
                         if cartesian_distance_squared < overlap_thresh_squared:
-                            overlap_dict[lattice_id1] = lattice_id2
+                            overlap_dict[lattice_id2] = lattice_id1
+
+        remove_list = []
+        for old_id, new_id in overlap_dict.items():
+            self._element_vector[old_id] = self._element_vector[new_id]
+            remove_list.append(new_id)
         # To remove the overlap, we need to move the atoms in the old config
-        self.delete_atom([old_id for new_id, old_id in overlap_dict.items()])
+        self.delete_atom(remove_list)
+
     @staticmethod
     def from_ase(ase_atoms: ase.Atoms) -> 'Config':
         basis = ase_atoms.get_cell()
@@ -228,8 +280,10 @@ class Config:
     @staticmethod
     def to_ase(config: 'Config') -> ase.Atoms:
         cell = config.get_basis()
-        positions = config._cartesian_position_matrix.T
         symbols = [element.symbol for element in config._element_vector]
+        positions = []
+        for atom_id in range(config.get_num_atoms()):
+            positions.append(config._cartesian_position_matrix[:, atom_id])
         return ase.Atoms(symbols=symbols, positions=positions, cell=cell)
 
 
