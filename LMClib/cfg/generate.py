@@ -3,138 +3,99 @@ import typing
 from LMClib.cfg.config import *
 
 
+def _generate(element_list: typing.List[Element],
+              factor: typing.Tuple[int, int, int],
+              site_positions_list: typing.List[typing.List[typing.Tuple[float, float, float]]]):
+    nx, ny, nz = factor
+    element_vector: typing.List[Element] = list()
+    positions = []
+    unitcell_positions = [(x, y, z) for x in range(nx) for y in range(ny) for z in range(nz)]
+    for x, y, z in unitcell_positions:
+        for element, site_positions in zip(element_list, site_positions_list):
+            for dx, dy, dz in site_positions:
+                element_vector.append(element)
+                positions.append(
+                    np.array([(x + dx) / nx, (y + dy) / ny, (z + dz) / nz]))
+
+    return np.array(positions).T, element_vector
+
+
 def generate_fcc001(element: Element,
                     factor: typing.Tuple[int, int, int],
                     lattice_constant: float) -> Config:
     # oriented X=[100] Y=[010] Z=[001].
-    nx, ny, nz = factor
     basis = lattice_constant * np.array(factor) * np.eye(3, dtype=np.float64)
-    element_vector: typing.List[Element] = list()
-    positions = []
-    unitcell_positions = [(x, y, z) for x in range(nx) for y in range(ny) for z in range(nz)]
     site_positions = [(0, 0, 0), (1 / 2, 1 / 2, 0), (1 / 2, 0, 1 / 2), (0, 1 / 2, 1 / 2)]
-
-    for x, y, z in unitcell_positions:
-        for dx, dy, dz in site_positions:
-            element_vector.append(element)
-            positions.append(np.array([(x + dx) / nx, (y + dy) / ny, (z + dz) / nz]))
-
-    return Config(basis, np.array(positions).T, element_vector)
+    return Config(basis,
+                  *_generate([element], factor, [site_positions]))
 
 
 def generate_fcc111(element: Element,
                     factor: typing.Tuple[int, int, int],
                     lattice_constant: float) -> Config:
     # oriented X=[1-10] Y=[11-2] Z=[111].
-    nx, ny, nz = factor
-    basis = np.array(
-        (lattice_constant * np.sqrt(2) / 2 * nx, lattice_constant * np.sqrt(6) / 2 * ny,
-         lattice_constant * np.sqrt(3) * nz)) * np.eye(3, dtype=np.float64)
-    element_vector: typing.List[Element] = list()
-    positions = []
-    unitcell_positions = [(x, y, z) for x in range(nx) for y in range(ny) for z in range(nz)]
+    basis = lattice_constant * np.array(factor) * np.diag((np.sqrt(2) / 2,
+                                                           np.sqrt(6) / 2,
+                                                           np.sqrt(3)))
+
     site_positions = [(0, 0, 0), (0, 2 / 3, 2 / 3), (0, 1 / 3, 1 / 3),
                       (1 / 2, 5 / 6, 1 / 3), (1 / 2, 1 / 6, 2 / 3), (1 / 2, 1 / 2, 0)]
-
-    for x, y, z in unitcell_positions:
-        for dx, dy, dz in site_positions:
-            element_vector.append(element)
-            positions.append(
-                np.array([(x + dx) / nx, (y + dy) / ny, (z + dz) / nz]))
-
-    return Config(basis, np.array(positions).T, element_vector)
+    return Config(basis,
+                  *_generate([element], factor, [site_positions]))
 
 
 def generate_bcc001(element: Element,
                     factor: typing.Tuple[int, int, int],
                     lattice_constant: float) -> Config:
     # oriented X=[100] Y=[010] Z=[001].
-    nx, ny, nz = factor
     basis = lattice_constant * np.array(factor) * np.eye(3, dtype=np.float64)
-    element_vector: typing.List[Element] = list()
-    positions = []
-    unitcell_positions = [(x, y, z) for x in range(nx) for y in range(ny) for z in range(nz)]
     site_positions = [(0, 0, 0), (1 / 2, 1 / 2, 1 / 2)]
-
-    for x, y, z in unitcell_positions:
-        for dx, dy, dz in site_positions:
-            element_vector.append(element)
-            positions.append(np.array([(x + dx) / nx, (y + dy) / ny, (z + dz) / nz]))
-
-    return Config(basis, np.array(positions).T, element_vector)
+    return Config(basis,
+                  *_generate([element], factor, [site_positions]))
 
 
 def generate_bcc111(element: Element,
                     factor: typing.Tuple[int, int, int],
                     lattice_constant: float) -> Config:
     # oriented X=[1-10] Y=[11-2] Z=[111].
-    nx, ny, nz = factor
-    basis = np.array(
-        (lattice_constant * np.sqrt(2) * nx, lattice_constant * np.sqrt(6) * ny,
-         lattice_constant * np.sqrt(3) / 2 * nz)) * np.eye(3, dtype=np.float64)
-    element_vector: typing.List[Element] = list()
-    positions = []
-    unitcell_positions = [(x, y, z) for x in range(nx) for y in range(ny) for z in range(nz)]
+    basis = lattice_constant * np.array(factor) * np.diag((np.sqrt(2),
+                                                           np.sqrt(6),
+                                                           np.sqrt(3) / 2))
     site_positions = [(0, 0, 0), (0, 2 / 3, 2 / 3), (0, 1 / 3, 1 / 3),
                       (1 / 2, 5 / 6, 1 / 3), (1 / 2, 1 / 6, 2 / 3), (1 / 2, 1 / 2, 0)]
-
-    for x, y, z in unitcell_positions:
-        for dx, dy, dz in site_positions:
-            element_vector.append(element)
-            positions.append(
-                np.array([(x + dx) / nx, (y + dy) / ny, (z + dz) / nz]))
-
-    return Config(basis, np.array(positions).T, element_vector)
+    return Config(basis,
+                  *_generate([element], factor, [site_positions]))
 
 
-def generate_L12(element1: Element, element2: Element,
+def generate_l12(element1: Element, element2: Element,
                  factor: typing.Tuple[int, int, int],
                  lattice_constant: float) -> Config:
-    nx, ny, nz = factor
     basis = lattice_constant * np.array(factor) * np.eye(3, dtype=np.float64)
-    element_vector: typing.List[Element] = list()
-    positions = []
-    unitcell_positions = [(x, y, z) for x in range(nx) for y in range(ny) for z in range(nz)]
     site_positions1 = [(0, 0, 0)]
     site_positions2 = [(1 / 2, 1 / 2, 0), (1 / 2, 0, 1 / 2), (0, 1 / 2, 1 / 2)]
-
-    for x, y, z in unitcell_positions:
-        for dx, dy, dz in site_positions1:
-            element_vector.append(element1)
-            positions.append(
-                np.array([(x + dx) / nx, (y + dy) / ny, (z + dz) / nz]))
-
-        for dx, dy, dz in site_positions2:
-            element_vector.append(element2)
-            positions.append(
-                np.array([(x + dx) / nx, (y + dy) / ny, (z + dz) / nz]))
-
-    return Config(basis, np.array(positions).T, element_vector)
+    return Config(basis,
+                  *_generate([element1, element2], factor, [site_positions1, site_positions2]))
 
 
-def generate_L10(element1: Element, element2: Element,
+def generate_l10(element1: Element, element2: Element,
                  factor: typing.Tuple[int, int, int],
                  lattice_constant: float) -> Config:
-    nx, ny, nz = factor
     basis = lattice_constant * np.array(factor) * np.eye(3, dtype=np.float64)
-    element_vector: typing.List[Element] = list()
-    positions = []
-    unitcell_positions = [(x, y, z) for x in range(nx) for y in range(ny) for z in range(nz)]
     site_positions1 = [(0, 0, 0), (1 / 2, 1 / 2, 0)]
     site_positions2 = [(1 / 2, 0, 1 / 2), (0, 1 / 2, 1 / 2)]
+    return Config(basis,
+                  *_generate([element1, element2], factor, [site_positions1, site_positions2]))
 
-    for x, y, z in unitcell_positions:
-        for dx, dy, dz in site_positions1:
-            element_vector.append(element1)
-            positions.append(
-                np.array([(x + dx) / nx, (y + dy) / ny, (z + dz) / nz]))
 
-        for dx, dy, dz in site_positions2:
-            element_vector.append(element2)
-            positions.append(
-                np.array([(x + dx) / nx, (y + dy) / ny, (z + dz) / nz]))
-
-    return Config(basis, np.array(positions).T, element_vector)
+def generate_l10star(element1: Element, element2: Element,
+                     factor: typing.Tuple[int, int, int],
+                     lattice_constant: float) -> Config:
+    basis = lattice_constant * np.array(factor) * np.diag((2, 1, 1))
+    site_positions1 = [(0, 0, 0), (1 / 2, 0, 0), (3 / 4, 1 / 2, 0), (1 / 4, 0, 1 / 2)]
+    site_positions2 = [(1 / 4, 1 / 2, 0), (3 / 4, 0, 1 / 2), (0, 1 / 2, 1 / 2),
+                       (1 / 2, 1 / 2, 1 / 2)]
+    return Config(basis,
+                  *_generate([element1, element2], factor, [site_positions1, site_positions2]))
 
 
 def integrate_fcc111_from_fcc001(config111, config100):
