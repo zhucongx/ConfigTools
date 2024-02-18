@@ -3,9 +3,10 @@ import typing
 from LMClib.cfg.config import *
 
 
-def generate_fcc100(element: Element,
+def generate_fcc001(element: Element,
                     factor: typing.Tuple[int, int, int],
                     lattice_constant: float) -> Config:
+    # oriented X=[100] Y=[010] Z=[001].
     nx, ny, nz = factor
     basis = lattice_constant * np.array(factor) * np.eye(3, dtype=np.float64)
     element_vector: typing.List[Element] = list()
@@ -24,6 +25,7 @@ def generate_fcc100(element: Element,
 def generate_fcc111(element: Element,
                     factor: typing.Tuple[int, int, int],
                     lattice_constant: float) -> Config:
+    # oriented X=[1-10] Y=[11-2] Z=[111].
     nx, ny, nz = factor
     basis = np.array(
         (lattice_constant * np.sqrt(2) / 2 * nx, lattice_constant * np.sqrt(6) / 2 * ny,
@@ -43,7 +45,99 @@ def generate_fcc111(element: Element,
     return Config(basis, np.array(positions).T, element_vector)
 
 
-def integrate_fcc111_from_fcc100(config111, config100):
+def generate_bcc001(element: Element,
+                    factor: typing.Tuple[int, int, int],
+                    lattice_constant: float) -> Config:
+    # oriented X=[100] Y=[010] Z=[001].
+    nx, ny, nz = factor
+    basis = lattice_constant * np.array(factor) * np.eye(3, dtype=np.float64)
+    element_vector: typing.List[Element] = list()
+    positions = []
+    unitcell_positions = [(x, y, z) for x in range(nx) for y in range(ny) for z in range(nz)]
+    site_positions = [(0, 0, 0), (1 / 2, 1 / 2, 1 / 2)]
+
+    for x, y, z in unitcell_positions:
+        for dx, dy, dz in site_positions:
+            element_vector.append(element)
+            positions.append(np.array([(x + dx) / nx, (y + dy) / ny, (z + dz) / nz]))
+
+    return Config(basis, np.array(positions).T, element_vector)
+
+
+def generate_bcc111(element: Element,
+                    factor: typing.Tuple[int, int, int],
+                    lattice_constant: float) -> Config:
+    # oriented X=[1-10] Y=[11-2] Z=[111].
+    nx, ny, nz = factor
+    basis = np.array(
+        (lattice_constant * np.sqrt(2) * nx, lattice_constant * np.sqrt(6) * ny,
+         lattice_constant * np.sqrt(3) / 2 * nz)) * np.eye(3, dtype=np.float64)
+    element_vector: typing.List[Element] = list()
+    positions = []
+    unitcell_positions = [(x, y, z) for x in range(nx) for y in range(ny) for z in range(nz)]
+    site_positions = [(0, 0, 0), (0, 2 / 3, 2 / 3), (0, 1 / 3, 1 / 3),
+                      (1 / 2, 5 / 6, 1 / 3), (1 / 2, 1 / 6, 2 / 3), (1 / 2, 1 / 2, 0)]
+
+    for x, y, z in unitcell_positions:
+        for dx, dy, dz in site_positions:
+            element_vector.append(element)
+            positions.append(
+                np.array([(x + dx) / nx, (y + dy) / ny, (z + dz) / nz]))
+
+    return Config(basis, np.array(positions).T, element_vector)
+
+
+def generate_L12(element1: Element, element2: Element,
+                 factor: typing.Tuple[int, int, int],
+                 lattice_constant: float) -> Config:
+    nx, ny, nz = factor
+    basis = lattice_constant * np.array(factor) * np.eye(3, dtype=np.float64)
+    element_vector: typing.List[Element] = list()
+    positions = []
+    unitcell_positions = [(x, y, z) for x in range(nx) for y in range(ny) for z in range(nz)]
+    site_positions1 = [(0, 0, 0)]
+    site_positions2 = [(1 / 2, 1 / 2, 0), (1 / 2, 0, 1 / 2), (0, 1 / 2, 1 / 2)]
+
+    for x, y, z in unitcell_positions:
+        for dx, dy, dz in site_positions1:
+            element_vector.append(element1)
+            positions.append(
+                np.array([(x + dx) / nx, (y + dy) / ny, (z + dz) / nz]))
+
+        for dx, dy, dz in site_positions2:
+            element_vector.append(element2)
+            positions.append(
+                np.array([(x + dx) / nx, (y + dy) / ny, (z + dz) / nz]))
+
+    return Config(basis, np.array(positions).T, element_vector)
+
+
+def generate_L10(element1: Element, element2: Element,
+                 factor: typing.Tuple[int, int, int],
+                 lattice_constant: float) -> Config:
+    nx, ny, nz = factor
+    basis = lattice_constant * np.array(factor) * np.eye(3, dtype=np.float64)
+    element_vector: typing.List[Element] = list()
+    positions = []
+    unitcell_positions = [(x, y, z) for x in range(nx) for y in range(ny) for z in range(nz)]
+    site_positions1 = [(0, 0, 0), (1 / 2, 1 / 2, 0)]
+    site_positions2 = [(1 / 2, 0, 1 / 2), (0, 1 / 2, 1 / 2)]
+
+    for x, y, z in unitcell_positions:
+        for dx, dy, dz in site_positions1:
+            element_vector.append(element1)
+            positions.append(
+                np.array([(x + dx) / nx, (y + dy) / ny, (z + dz) / nz]))
+
+        for dx, dy, dz in site_positions2:
+            element_vector.append(element2)
+            positions.append(
+                np.array([(x + dx) / nx, (y + dy) / ny, (z + dz) / nz]))
+
+    return Config(basis, np.array(positions).T, element_vector)
+
+
+def integrate_fcc111_from_fcc001(config111, config100):
     rotation_matrix = np.array([[np.sqrt(2) / 2, -np.sqrt(2) / 2, 0],
                                 [np.sqrt(6) / 6, np.sqrt(6) / 6, -np.sqrt(6) / 3],
                                 [np.sqrt(3) / 3, np.sqrt(3) / 3, np.sqrt(3) / 3]],
@@ -57,27 +151,29 @@ def integrate_fcc111_from_fcc100(config111, config100):
     config111.append(config100, 1)
     return config111
 
+# if __name__ == '__main__':
+# import ase.io
 
-if __name__ == '__main__':
-    import ase.io
+# from ase.build import fcc111
+# slab = fcc111('Al', size=(20, 20, 24), a=4.046, orthogonal=True, periodic=True)
+# ase.io.write("test_out.cfg", slab, format="cfg")
 
-    # from ase.build import fcc111
-    # slab = fcc111('Al', size=(20, 20, 24), a=4.046, orthogonal=True, periodic=True)
-    # ase.io.write("test_out.cfg", slab, format="cfg")
+# cfg111 = generate_fcc111(Element.Al, (20, 10, 8), 4.046)
+# ase.io.write("Al111.xyz", Config.to_ase(cfg111), format="extxyz")
 
-    cfg111 = generate_fcc111(Element.Al, (20, 10, 8), 4.046)
-    # cfg100 = generate_fcc100(Element.Mg, (4, 4, 4), 4.046)
-    cfg100 = Config.from_ase(ase.io.read("/Users/zhucongx/Research/"
-                                         "GOALI/ConfigTools/test/test_files/forward.cfg",
-                                         format="cfg"))
-    cfg = integrate_fcc111_from_fcc100(cfg111, cfg100)
-    ase.io.write("test_out1.xyz", Config.to_ase(cfg), format="extxyz")
-
-    cfg111 = generate_fcc111(Element.Al, (20, 10, 8), 4.046)
-    # cfg100 = generate_fcc100(Element.Mg, (4, 4, 4), 4.046)
-    cfg100 = Config.from_ase(ase.io.read("/Users/zhucongx/Research/"
-                                         "GOALI/ConfigTools/test/test_files/backward.cfg",
-                                         format="cfg"))
-    cfg = integrate_fcc111_from_fcc100(cfg111, cfg100)
-    cfg.reassign_lattice()
-    ase.io.write("test_out2.xyz", Config.to_ase(cfg), format="extxyz")
+# cfg111 = generate_fcc111(Element.Al, (20, 10, 8), 4.046)
+# # cfg100 = generate_fcc100(Element.Mg, (4, 4, 4), 4.046)
+# cfg100 = Config.from_ase(ase.io.read("/Users/zhucongx/Research/"
+#                                      "GOALI/ConfigTools/test/test_files/forward.cfg",
+#                                      format="cfg"))
+# cfg = integrate_fcc111_from_fcc100(cfg111, cfg100)
+# ase.io.write("test_out1.xyz", Config.to_ase(cfg), format="extxyz")
+#
+# cfg111 = generate_fcc111(Element.Al, (20, 10, 8), 4.046)
+# # cfg100 = generate_fcc100(Element.Mg, (4, 4, 4), 4.046)
+# cfg100 = Config.from_ase(ase.io.read("/Users/zhucongx/Research/"
+#                                      "GOALI/ConfigTools/test/test_files/backward.cfg",
+#                                      format="cfg"))
+# cfg = integrate_fcc111_from_fcc100(cfg111, cfg100)
+# # cfg.reassign_lattice()
+# ase.io.write("test_out2.xyz", Config.to_ase(cfg), format="extxyz")
