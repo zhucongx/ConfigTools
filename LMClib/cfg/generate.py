@@ -25,7 +25,7 @@ def generate_fcc001(element: Element,
                     lattice_constant: float) -> Config:
     # oriented X=[100] Y=[010] Z=[001].
     basis = lattice_constant * np.array(factor) * np.eye(3, dtype=np.float64)
-    site_positions = [(0, 0, 0), (1 / 2, 1 / 2, 0), (1 / 2, 0, 1 / 2), (0, 1 / 2, 1 / 2)]
+    site_positions = [(0, 0, 0), (0.5, 0.5, 0), (0.5, 0, 0.5), (0, 0.5, 0.5)]
     return Config(basis,
                   *_generate([element], factor, [site_positions]))
 
@@ -39,7 +39,7 @@ def generate_fcc111(element: Element,
                                                            np.sqrt(3)))
 
     site_positions = [(0, 0, 0), (0, 2 / 3, 2 / 3), (0, 1 / 3, 1 / 3),
-                      (1 / 2, 5 / 6, 1 / 3), (1 / 2, 1 / 6, 2 / 3), (1 / 2, 1 / 2, 0)]
+                      (0.5, 5 / 6, 1 / 3), (0.5, 1 / 6, 2 / 3), (0.5, 0.5, 0)]
     return Config(basis,
                   *_generate([element], factor, [site_positions]))
 
@@ -49,7 +49,7 @@ def generate_bcc001(element: Element,
                     lattice_constant: float) -> Config:
     # oriented X=[100] Y=[010] Z=[001].
     basis = lattice_constant * np.array(factor) * np.eye(3, dtype=np.float64)
-    site_positions = [(0, 0, 0), (1 / 2, 1 / 2, 1 / 2)]
+    site_positions = [(0, 0, 0), (0.5, 0.5, 0.5)]
     return Config(basis,
                   *_generate([element], factor, [site_positions]))
 
@@ -62,9 +62,40 @@ def generate_bcc111(element: Element,
                                                            np.sqrt(6),
                                                            np.sqrt(3) / 2))
     site_positions = [(0, 0, 0), (0, 2 / 3, 2 / 3), (0, 1 / 3, 1 / 3),
-                      (1 / 2, 5 / 6, 1 / 3), (1 / 2, 1 / 6, 2 / 3), (1 / 2, 1 / 2, 0)]
+                      (0.5, 5 / 6, 1 / 3), (0.5, 1 / 6, 2 / 3), (0.5, 0.5, 0)]
     return Config(basis,
                   *_generate([element], factor, [site_positions]))
+
+
+def generate_l10(element1: Element, element2: Element,
+                 factor: typing.Tuple[int, int, int],
+                 lattice_constant: float) -> Config:
+    basis = lattice_constant * np.array(factor) * np.eye(3, dtype=np.float64)
+    site_positions1 = [(0, 0, 0), (0.5, 0.5, 0)]
+    site_positions2 = [(0.5, 0, 0.5), (0, 0.5, 0.5)]
+    return Config(basis,
+                  *_generate([element1, element2], factor, [site_positions1, site_positions2]))
+
+
+def generate_l11(element1: Element, element2: Element,
+                 factor: typing.Tuple[int, int, int],
+                 lattice_constant: float) -> Config:
+    basis = lattice_constant * np.array(factor) * np.diag((2, 2, 2))
+    site_positions1 = [(0.25, 0.25, 0.00), (0.25, 0.00, 0.25), (0.00, 0.25, 0.25),
+                       (0.00, 0.00, 0.50), (0.00, 0.50, 0.00), (0.25, 0.75, 0.50),
+                       (0.25, 0.50, 0.75), (0.00, 0.75, 0.75), (0.50, 0.00, 0.00),
+                       (0.75, 0.25, 0.50), (0.75, 0.00, 0.75), (0.50, 0.25, 0.75),
+                       (0.75, 0.75, 0.00), (0.75, 0.50, 0.25), (0.50, 0.75, 0.25),
+                       (0.50, 0.50, 0.50)]
+    site_positions2 = [(0.00, 0.00, 0.00), (0.25, 0.25, 0.50), (0.25, 0.00, 0.75),
+                       (0.00, 0.25, 0.75), (0.25, 0.75, 0.00), (0.25, 0.50, 0.25),
+                       (0.00, 0.75, 0.25), (0.00, 0.50, 0.50), (0.75, 0.25, 0.00),
+                       (0.75, 0.00, 0.25), (0.50, 0.25, 0.25), (0.50, 0.00, 0.50),
+                       (0.50, 0.50, 0.00), (0.75, 0.75, 0.50), (0.75, 0.50, 0.75),
+                       (0.50, 0.75, 0.75)]
+
+    return Config(basis,
+                  *_generate([element1, element2], factor, [site_positions1, site_positions2]))
 
 
 def generate_l12(element1: Element, element2: Element,
@@ -72,17 +103,7 @@ def generate_l12(element1: Element, element2: Element,
                  lattice_constant: float) -> Config:
     basis = lattice_constant * np.array(factor) * np.eye(3, dtype=np.float64)
     site_positions1 = [(0, 0, 0)]
-    site_positions2 = [(1 / 2, 1 / 2, 0), (1 / 2, 0, 1 / 2), (0, 1 / 2, 1 / 2)]
-    return Config(basis,
-                  *_generate([element1, element2], factor, [site_positions1, site_positions2]))
-
-
-def generate_l10(element1: Element, element2: Element,
-                 factor: typing.Tuple[int, int, int],
-                 lattice_constant: float) -> Config:
-    basis = lattice_constant * np.array(factor) * np.eye(3, dtype=np.float64)
-    site_positions1 = [(0, 0, 0), (1 / 2, 1 / 2, 0)]
-    site_positions2 = [(1 / 2, 0, 1 / 2), (0, 1 / 2, 1 / 2)]
+    site_positions2 = [(0.5, 0.5, 0), (0.5, 0, 0.5), (0, 0.5, 0.5)]
     return Config(basis,
                   *_generate([element1, element2], factor, [site_positions1, site_positions2]))
 
@@ -91,11 +112,89 @@ def generate_l10star(element1: Element, element2: Element,
                      factor: typing.Tuple[int, int, int],
                      lattice_constant: float) -> Config:
     basis = lattice_constant * np.array(factor) * np.diag((2, 1, 1))
-    site_positions1 = [(0, 0, 0), (1 / 2, 0, 0), (3 / 4, 1 / 2, 0), (1 / 4, 0, 1 / 2)]
-    site_positions2 = [(1 / 4, 1 / 2, 0), (3 / 4, 0, 1 / 2), (0, 1 / 2, 1 / 2),
-                       (1 / 2, 1 / 2, 1 / 2)]
+    site_positions1 = [(0, 0, 0), (0.5, 0, 0), (0.75, 0.5, 0), (0.25, 0, 0.5)]
+    site_positions2 = [(0.25, 0.5, 0), (0.75, 0, 0.5), (0, 0.5, 0.5), (0.5, 0.5, 0.5)]
     return Config(basis,
                   *_generate([element1, element2], factor, [site_positions1, site_positions2]))
+
+
+def generate_l12star(element1: Element, element2: Element,
+                     factor: typing.Tuple[int, int, int],
+                     lattice_constant: float) -> Config:
+    basis = lattice_constant * np.array(factor) * np.diag((4, 1, 1))
+    site_positions1 = [(0.5, 0.5, 0.5), (0.0, 0.0, 0.0), (0.75, 0.0, 0.0), (0.25, 0.5, 0.5)]
+    site_positions2 = [(0.125, 0.5, 0.0), (0.25, 0.0, 0.0), (0.375, 0.5, 0.0), (0.5, 0.0, 0.0),
+                       (0.625, 0.5, 0.0), (0.875, 0.5, 0.0), (0.0, 0.5, 0.5), (0.125, 0.0, 0.5),
+                       (0.375, 0.0, 0.5), (0.625, 0.0, 0.5), (0.75, 0.5, 0.5), (0.875, 0.0, 0.5)]
+
+    return Config(basis,
+                  *_generate([element1, element2], factor, [site_positions1, site_positions2]))
+
+
+def generate_z1(element1: Element, element2: Element,
+                factor: typing.Tuple[int, int, int],
+                lattice_constant: float) -> Config:
+    basis = lattice_constant * np.array(factor) * np.diag((1, 1, 2))
+    site_positions1 = [(0.5, 0.5, 0.0), (0.0, 0.0, 0.0)]
+    site_positions2 = [(0.0, 0.5, 0.25), (0.5, 0.0, 0.25), (0.0, 0.0, 0.5),
+                       (0.5, 0.5, 0.5), (0.0, 0.5, 0.75), (0.5, 0.0, 0.75)]
+    return Config(basis,
+                  *_generate([element1, element2], factor, [site_positions1, site_positions2]))
+
+
+def generate_b2(element1: Element, element2: Element,
+                factor: typing.Tuple[int, int, int],
+                lattice_constant: float) -> Config:
+    basis = lattice_constant * np.array(factor) * np.eye(3, dtype=np.float64)
+    site_positions1 = [(0.00, 0.00, 0.00)]
+    site_positions2 = [(0.50, 0.50, 0.50)]
+    return Config(basis,
+                  *_generate([element1, element2], factor,
+                             [site_positions1, site_positions2]))
+
+
+def generate_l21(element1: Element, element2: Element, element3: Element,
+                 factor: typing.Tuple[int, int, int],
+                 lattice_constant: float) -> Config:
+    basis = lattice_constant * np.array(factor) * np.diag((2, 2, 2))
+    site_positions1 = [(0.00, 0.00, 0.50), (0.00, 0.50, 0.00), (0.50, 0.00, 0.00),
+                       (0.50, 0.50, 0.50)]
+    site_positions2 = [(0.00, 0.00, 0.00), (0.00, 0.50, 0.50), (0.50, 0.00, 0.50),
+                       (0.50, 0.50, 0.00)]
+    site_positions3 = [(0.25, 0.25, 0.75), (0.25, 0.75, 0.75), (0.25, 0.75, 0.25),
+                       (0.25, 0.25, 0.25), (0.75, 0.25, 0.25), (0.75, 0.75, 0.25),
+                       (0.75, 0.75, 0.75), (0.75, 0.25, 0.75)]
+    return Config(basis,
+                  *_generate([element1, element2, element3], factor,
+                             [site_positions1, site_positions2, site_positions3]))
+
+
+def generate_l22(element1: Element, element2: Element,
+                 factor: typing.Tuple[int, int, int],
+                 lattice_constant: float) -> Config:
+    basis = lattice_constant * np.array(factor) * np.diag((3, 3, 3))
+    site_positions1 = [(0, 2 / 3, 0), (0, 1 / 3, 0), (1 / 3, 0, 0),
+                       (0, 0, 2 / 3), (2 / 3, 0, 0), (0, 0, 1 / 3),
+                       (1 / 2, 1 / 6, 1 / 2), (1 / 2, 5 / 6, 1 / 2), (5 / 6, 1 / 2, 1 / 2),
+                       (1 / 2, 1 / 2, 1 / 6), (1 / 6, 1 / 2, 1 / 2), (1 / 2, 1 / 2, 5 / 6)]
+    site_positions2 = [(1 / 6, 1 / 2, 1 / 6), (5 / 6, 1 / 2, 1 / 6), (5 / 6, 5 / 6, 1 / 6),
+                       (1 / 3, 0, 1 / 3), (1 / 3, 1 / 3, 1 / 3), (5 / 6, 5 / 6, 1 / 2),
+                       (1 / 6, 5 / 6, 5 / 6), (1 / 2, 5 / 6, 5 / 6), (1 / 3, 2 / 3, 2 / 3),
+                       (1 / 2, 1 / 6, 1 / 6), (1 / 6, 1 / 6, 1 / 6), (1 / 6, 1 / 6, 1 / 2),
+                       (1 / 3, 2 / 3, 0), (1 / 3, 2 / 3, 1 / 3), (1 / 6, 5 / 6, 1 / 6),
+                       (0, 0, 0), (1 / 6, 5 / 6, 1 / 2), (1 / 6, 1 / 2, 5 / 6),
+                       (0, 2 / 3, 1 / 3), (1 / 2, 5 / 6, 1 / 6), (2 / 3, 2 / 3, 1 / 3),
+                       (2 / 3, 0, 2 / 3), (1 / 3, 0, 2 / 3), (1 / 3, 1 / 3, 2 / 3),
+                       (5 / 6, 1 / 2, 5 / 6), (5 / 6, 5 / 6, 5 / 6), (1 / 3, 1 / 3, 0),
+                       (2 / 3, 1 / 3, 1 / 3), (0, 1 / 3, 1 / 3), (5 / 6, 1 / 6, 1 / 6),
+                       (0, 2 / 3, 2 / 3), (2 / 3, 2 / 3, 2 / 3), (2 / 3, 2 / 3, 0),
+                       (5 / 6, 1 / 6, 1 / 2), (5 / 6, 1 / 6, 5 / 6), (2 / 3, 1 / 3, 2 / 3),
+                       (1 / 2, 1 / 2, 1 / 2), (2 / 3, 1 / 3, 0), (2 / 3, 0, 1 / 3),
+                       (1 / 2, 1 / 6, 5 / 6), (0, 1 / 3, 2 / 3), (1 / 6, 1 / 6, 5 / 6)]
+
+    return Config(basis,
+                  *_generate([element1, element2], factor,
+                             [site_positions1, site_positions2]))
 
 
 def integrate_fcc111_from_fcc001(config111, config100):
