@@ -197,6 +197,11 @@ def generate_l22(element1: Element, element2: Element,
                              [site_positions1, site_positions2]))
 
 
+def integrate_small_small_to_large(config_large, config_small):
+    config_large.append(config_small, 1)
+    return config_large
+
+
 def integrate_fcc111_from_fcc001(config111, config100):
     rotation_matrix = np.array([[np.sqrt(2) / 2, -np.sqrt(2) / 2, 0],
                                 [np.sqrt(6) / 6, np.sqrt(6) / 6, -np.sqrt(6) / 3],
@@ -211,8 +216,14 @@ def integrate_fcc111_from_fcc001(config111, config100):
     config111.append(config100, 1)
     return config111
 
-# if __name__ == '__main__':
-# import ase.io
+
+if __name__ == '__main__':
+    import ase.io
+
+    l10 = generate_l10(Element.Mg, Element.Zn, (2, 1, 1), 4.046)
+    fcc = generate_fcc001(Element.Al, (4, 4, 4), 4.046)
+    fcc.append(l10, 1)
+    ase.io.write("l12.xyz", Config.to_ase(fcc), format="extxyz")
 
 # from ase.build import fcc111
 # slab = fcc111('Al', size=(20, 20, 24), a=4.046, orthogonal=True, periodic=True)
