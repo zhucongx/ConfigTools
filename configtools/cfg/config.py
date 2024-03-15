@@ -59,7 +59,7 @@ class Config(object):
         inverse_basis = np.linalg.inv(self._basis)
         for i, atom in enumerate(self._atom_list):
             self._atom_list[i].fractional_position = (
-                    atom.cartesian_position + np.random.normal(0, 0.1, 3)).dot(
+                atom.cartesian_position + np.random.normal(0, 0.1, 3)).dot(
                 inverse_basis)
 
     def wrap_at_periodic_boundaries(self) -> None:
@@ -344,7 +344,7 @@ def get_pair_rotation_matrix(config: Config, jump_pair: typing.Tuple[int, int]) 
 
 
 def get_all_neighbors_set_of_jump_pair(config: Config, jump_pair: typing.Tuple[int, int]) -> \
-        typing.Set[int]:
+    typing.Set[int]:
     near_neighbors_hashset: typing.Set[int] = set()
     for i in jump_pair:
         atom = config.atom_list[i]
@@ -357,7 +357,7 @@ def get_all_neighbors_set_of_jump_pair(config: Config, jump_pair: typing.Tuple[i
 
 
 def get_neighbors_set_of_jump_pair(
-        config: Config, jump_pair: typing.Tuple[int, int]) -> typing.Set[int]:
+    config: Config, jump_pair: typing.Tuple[int, int]) -> typing.Set[int]:
     near_neighbors_hashset: typing.Set[int] = set()
     for i in jump_pair:
         atom = config.atom_list[i]
@@ -367,7 +367,7 @@ def get_neighbors_set_of_jump_pair(
 
 
 def get_neighbors_set_of_atom(
-        config: Config, atom_id: int) -> typing.Set[int]:
+    config: Config, atom_id: int) -> typing.Set[int]:
     near_neighbors_hashset: typing.Set[int] = set()
     atom = config.atom_list[atom_id]
     for j in atom.first_nearest_neighbor_list + atom.second_nearest_neighbor_list + atom.third_nearest_neighbor_list:
@@ -453,6 +453,22 @@ def get_distance_of_atom_between(config_start: Config, config_end: Config, atom_
             fractional_distance_vector[i] += 1
     absolute_distance_vector = fractional_distance_vector.dot(config_start.basis)
     absolute_distance_square = np.inner(absolute_distance_vector, absolute_distance_vector)
+    return np.sqrt(absolute_distance_square)
+
+
+def get_distance_of_config_between(config_start: Config, config_end: Config) -> float:
+    assert config_start.number_atoms == config_end.number_atoms
+    absolute_distance_square = 0
+    for i in range(config_start.number_atoms):
+        fractional_distance_vector = config_end.atom_list[i].fractional_position - \
+                                     config_start.atom_list[i].fractional_position
+        for j in range(3):
+            while fractional_distance_vector[j] >= 0.5:
+                fractional_distance_vector[j] -= 1
+            while fractional_distance_vector[j] < -0.5:
+                fractional_distance_vector[j] += 1
+        absolute_distance_vector = fractional_distance_vector.dot(config_start.basis)
+        absolute_distance_square += np.inner(absolute_distance_vector, absolute_distance_vector)
     return np.sqrt(absolute_distance_square)
 
 
