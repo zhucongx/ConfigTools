@@ -220,17 +220,39 @@ def integrate_fcc111_from_fcc001(config111, config100):
 if __name__ == '__main__':
     import ase.io
 
-    l10 = generate_l10(Element.Mg, Element.Zn, (2, 1, 1), 4.046)
-    fcc = generate_fcc001(Element.Al, (4, 4, 4), 4.046)
-    fcc.append(l10, 1)
-    ase.io.write("l12.xyz", Config.to_ase(fcc), format="extxyz")
+    # l10 = generate_l10(Element.Mg, Element.Zn, (2, 1, 1), 4.046)
+    # fcc = generate_fcc001(Element.Al, (4, 4, 4), 4.046)
+    # fcc.append(l10, 1)
+    # ase.io.write("l12.xyz", Config.to_ase(fcc), format="extxyz")
 
-# from ase.build import fcc111
-# slab = fcc111('Al', size=(20, 20, 24), a=4.046, orthogonal=True, periodic=True)
-# ase.io.write("test_out.cfg", slab, format="cfg")
 
-# cfg111 = generate_fcc111(Element.Al, (20, 10, 8), 4.046)
-# ase.io.write("Al111.xyz", Config.to_ase(cfg111), format="extxyz")
+
+    # oriented X=[1-10] Y=[11-2] Z=[111].
+    # cfg111 = generate_fcc111(Element.Al, (40, 20, 20), 4.046)
+    # num_Mg = 2747
+    # num_Zn = 2287
+    # num_Sn = 0
+    # num_Al = 96000 - num_Mg - num_Zn - num_Sn
+    # element_list = ["Mg"] * num_Mg + ["Zn"] * num_Zn + ["Sn"] * num_Sn + ["Al"] * num_Al
+    # np.random.shuffle(element_list)
+    # cfg111_ase = Config.to_ase(cfg111)
+    # cfg111_ase.set_chemical_symbols(element_list)
+    # ase.io.write("ppm000.cfg", cfg111_ase, format="cfg")
+
+    # oriented X=[1-10] Y=[11-2] Z=[111].
+    cfg100 = generate_fcc001(Element.Al, (30, 30, 30), 4.046)
+    num_Mg = 3090
+    num_Zn = 2573
+    num_Sn = 30
+    num_Al = 108000 - num_Mg - num_Zn - num_Sn
+    element_list = ["Mg"] * num_Mg + ["Zn"] * num_Zn + ["Sn"] * num_Sn + ["Al"] * num_Al
+    np.random.shuffle(element_list)
+    cfg100_ase = Config.to_ase(cfg100)
+    cfg100_ase.set_chemical_symbols(element_list)
+
+    # ase.io.write("Al111.xyz", cfg111_ase, format="extxyz")
+    ase.io.write("ppm300.cfg", cfg100_ase, format="cfg")
+
 
 # cfg111 = generate_fcc111(Element.Al, (20, 10, 8), 4.046)
 # # cfg100 = generate_fcc100(Element.Mg, (4, 4, 4), 4.046)
