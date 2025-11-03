@@ -214,6 +214,7 @@ def integrate_fcc111_from_fcc001(config111, config100):
     config100.move_cartesian((EPSILON, EPSILON, EPSILON))
 
     config111.append(config100, 1)
+    config111.set_periodic_boundary_condition([True, True, True])
     return config111
 
 
